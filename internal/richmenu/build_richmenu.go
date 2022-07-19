@@ -8,11 +8,6 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-// var (
-// 	CHANNEL_SECRET = "5888804cf864224c0039290df79bbef0"
-// 	CHANNEL_TOKEN  = "tNraN7tLdbZPoW/GE79Blv7ivJ10n2xlyrMvGvtk4DHrf9Jyb/lJV9ZSelL+PIq5qGjsHVxKr3UyFLmQUXeVvpPZ2BqByxB8XoTNGQCBsCW0vLjFfoFULsOhQRh64sPK7wnggWgRtiKZ/M5bKgRagwdB04t89/1O/w1cDnyilFU="
-// )
-
 func Build_RichMenu() {
 
 	bot, err := linebot.New(
