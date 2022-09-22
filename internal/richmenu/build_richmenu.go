@@ -38,7 +38,7 @@ func Build_RichMenu() {
 
 	Richmenu_Id_B := CreatRichMenu_B(bot, aid_A)
 
-	img_path_B := "./internal/richmenu/img/img_B.png"
+	img_path_B := "./internal/richmenu/img/linerichmenu.jpeg"
 
 	Upload_Img(bot, Richmenu_Id_B, img_path_B)
 
@@ -132,30 +132,31 @@ func CreatRichMenu_B(bot *linebot.Client, aid string) string {
 			{
 				Bounds: linebot.RichMenuBounds{X: 833, Y: 235, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
-					Type: linebot.RichMenuActionTypeURI,
-					URI:  "https://www.harpersbazaar.com/tw/life/trips/g33228687/taiwan-camping-places/",
+					Type: linebot.RichMenuActionTypeMessage,
+					Text: "營地資訊",
 				},
 			},
 			{
 				Bounds: linebot.RichMenuBounds{X: 1666, Y: 235, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
-					Type: linebot.RichMenuActionTypeMessage,
-					Text: "營地介紹",
+					Type:  linebot.RichMenuActionTypeMessage,
+					Label: "營地位置",
+					Text:  "營地位置",
 				},
 			},
 			{
 				Bounds: linebot.RichMenuBounds{X: 0, Y: 788, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
 					Type: linebot.RichMenuActionTypeMessage,
-					Text: "粉絲獨享",
+					Text: "我的訂單",
 				},
 			},
 
 			{
 				Bounds: linebot.RichMenuBounds{X: 833, Y: 788, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
-					Type: linebot.RichMenuActionTypeMessage,
-					Text: "常見問題",
+					Type: linebot.RichMenuActionTypeURI,
+					URI:  "https://www.google.com.tw/maps/place/%E5%B0%8F%E8%B7%AF%E9%9C%B2%E7%87%9F%E5%8D%80/@24.2402679,120.7943069,17z/data=!3m1!4b1!4m5!3m4!1s0x34691bf3c0f25c6b:0x79e36fadfb5136c8!8m2!3d24.240263!4d120.796501?hl=zh-TW",
 				},
 			},
 			{

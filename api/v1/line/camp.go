@@ -56,9 +56,10 @@ func CampReply(c *gin.Context) {
 
 				switch {
 
-				case text_trimspace == "我要訂營地!":
+				case text_trimspace == "營地位置":
+					bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069))
 
-				case text_trimspace == "營地介紹":
+				case text_trimspace == "營地資訊":
 					tmp := Quick_Reply_CampRoundName()
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("選擇分區").WithQuickReplies(&linebot.QuickReplyItems{
 						Items: tmp,
@@ -156,11 +157,12 @@ func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 	camp_searchs := SearchRemainCamp(t)
 	for _, s := range camp_searchs {
 		remain_num := fmt.Sprintf("剩餘 %d 帳", s.RemainMinAmount)
+		des := fmt.Sprintf("%s-%s\n%s", t.Start, t.End, remain_num)
 		tmp := linebot.CarouselColumn{
 			ThumbnailImageURL:    s.Product.ImageUri[0],
 			ImageBackgroundColor: "#000000",
 			Title:                s.Product.CampRoundName,
-			Text:                 remain_num,
+			Text:                 des,
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label: "我要訂位",
