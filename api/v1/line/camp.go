@@ -57,7 +57,7 @@ func CampReply(c *gin.Context) {
 				switch {
 
 				case text_trimspace == "營地位置":
-					bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069))
+					bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069)).Do()
 
 				case text_trimspace == "營地資訊":
 					tmp := Quick_Reply_CampRoundName()
@@ -65,6 +65,22 @@ func CampReply(c *gin.Context) {
 						Items: tmp,
 					})).Do()
 
+				case strings.Contains(text_trimspace, "起始日期"):
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("date range", linebot.NewButtonsTemplate("", "", "選擇日期",
+						linebot.NewDatetimePickerAction("結束日期", "action=search&type=get_end_time", "date", time.Now().Format("2006-01-02"), "", time.Now().Format("2006-01-02")),
+					))).Do()
+				case strings.Contains(text_trimspace, "結束日期"):
+					value := Search[event.Source.UserID]
+
+					fmt.Println("Start Time", Search[event.Source.UserID].Start)
+					fmt.Println("End Time", Search[event.Source.UserID].End)
+					delete(Search, event.Source.UserID)
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("camp search",
+						&linebot.CarouselTemplate{
+							Columns:          Camp_Search_Remain(*value),
+							ImageAspectRatio: "rectangle",
+							ImageSize:        "cover",
+						})).Do()
 					// default:
 					// 	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(text_trimspace)).Do()
 					// }
@@ -84,12 +100,12 @@ func CampReply(c *gin.Context) {
 				case "go":
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("date range", linebot.NewButtonsTemplate("", "", "選擇日期",
 						linebot.NewDatetimePickerAction("起始日期", "action=search&type=get_start_time", "date", time.Now().Format("2006-01-02"), "", time.Now().Format("2006-01-02")),
-						linebot.NewDatetimePickerAction("結束日期", "action=search&type=get_end_time", "date", time.Now().Format("2006-01-02"), "", time.Now().Format("2006-01-02")),
 					))).Do()
 				case "get_start_time":
 					date := event.Postback.Params.Date
 					str := fmt.Sprintf("起始日期:%s", date)
 					fmt.Println(date)
+
 					value.Start, _ = time.Parse("2006-01-02", date)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(str)).Do()
 				case "get_end_time":
@@ -97,18 +113,8 @@ func CampReply(c *gin.Context) {
 
 					str := fmt.Sprintf("結束日期:%s", date)
 					value.End, _ = time.Parse("2006-01-02", date)
-					fmt.Println(str)
-					fmt.Println("Start Time", Search[event.Source.UserID].Start)
-					fmt.Println("End Time", Search[event.Source.UserID].End)
 
-					delete(Search, event.Source.UserID)
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("camp search",
-						&linebot.CarouselTemplate{
-							Columns:          Camp_Search_Remain(*value),
-							ImageAspectRatio: "rectangle",
-							ImageSize:        "cover",
-						})).Do()
-					//bot.ReplyMessage(event.ReplyToken,linebot.).Do()
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(str)).Do()
 
 				}
 
