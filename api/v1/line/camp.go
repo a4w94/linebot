@@ -109,9 +109,7 @@ func CampReply(c *gin.Context) {
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位結束日期", &linebot.ButtonsTemplate{
 						Text: "選擇訂位日期",
 						Actions: []linebot.TemplateAction{
-							&linebot.MessageAction{
-								Label: str,
-							},
+
 							&linebot.PostbackAction{
 								Label: str,
 								Data:  "",
