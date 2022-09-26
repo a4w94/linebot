@@ -65,22 +65,13 @@ func CampReply(c *gin.Context) {
 						Items: tmp,
 					})).Do()
 
-				case strings.Contains(text_trimspace, "起始日期"):
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("date range", linebot.NewButtonsTemplate("", "", "選擇日期",
-						linebot.NewDatetimePickerAction("結束日期", "action=search&type=get_end_time", "date", time.Now().Format("2006-01-02"), "", time.Now().Format("2006-01-02")),
-					))).Do()
-				case strings.Contains(text_trimspace, "結束日期"):
-					value := Search[event.Source.UserID]
+					// case strings.Contains(text_trimspace, "起始日期"):
+					// 	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("date range", linebot.NewButtonsTemplate("", "", "選擇日期",
+					// 		linebot.NewDatetimePickerAction("結束日期", "action=search&type=get_end_time", "date", time.Now().Format("2006-01-02"), "", time.Now().Format("2006-01-02")),
+					// 	))).Do()
+					// case strings.Contains(text_trimspace, "結束日期"):
+					// 	value := Search[event.Source.UserID]
 
-					fmt.Println("Start Time", Search[event.Source.UserID].Start)
-					fmt.Println("End Time", Search[event.Source.UserID].End)
-					delete(Search, event.Source.UserID)
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("camp search",
-						&linebot.CarouselTemplate{
-							Columns:          Camp_Search_Remain(*value),
-							ImageAspectRatio: "rectangle",
-							ImageSize:        "cover",
-						})).Do()
 					// default:
 					// 	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(text_trimspace)).Do()
 					// }
@@ -98,23 +89,58 @@ func CampReply(c *gin.Context) {
 				}
 				switch data.Type {
 				case "go":
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("date range", linebot.NewButtonsTemplate("", "", "選擇日期",
-						linebot.NewDatetimePickerAction("起始日期", "action=search&type=get_start_time", "date", time.Now().Format("2006-01-02"), "", time.Now().Format("2006-01-02")),
-					))).Do()
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位起始日期", &linebot.ButtonsTemplate{
+						Title: "選擇訂位日期",
+						Actions: []linebot.TemplateAction{
+							&linebot.DatetimePickerAction{
+								Label:   "起始日期",
+								Data:    "action=search&type=get_start_time",
+								Mode:    "date",
+								Initial: time.Now().Format("2006-01-02"),
+								Min:     time.Now().Format("2006-01-02"),
+							},
+						},
+					})).Do()
 				case "get_start_time":
 					date := event.Postback.Params.Date
 					str := fmt.Sprintf("起始日期:%s", date)
 					fmt.Println(date)
-
 					value.Start, _ = time.Parse("2006-01-02", date)
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(str)).Do()
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位結束日期", &linebot.ButtonsTemplate{
+						Title: "選擇訂位日期",
+						Actions: []linebot.TemplateAction{
+							&linebot.MessageAction{
+								Label: str,
+							},
+							&linebot.PostbackAction{
+								Label: str,
+								Data:  "",
+							},
+							&linebot.DatetimePickerAction{
+								Label:   "結束日期",
+								Data:    "action=search&type=get_end_time",
+								Mode:    "date",
+								Initial: time.Now().Format("2006-01-02"),
+								Min:     time.Now().Format("2006-01-02"),
+							},
+						},
+					})).Do()
+
 				case "get_end_time":
 					date := event.Postback.Params.Date
 
 					str := fmt.Sprintf("結束日期:%s", date)
 					value.End, _ = time.Parse("2006-01-02", date)
-
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(str)).Do()
+					fmt.Println(str)
+					fmt.Println("Start Time", Search[event.Source.UserID].Start)
+					fmt.Println("End Time", Search[event.Source.UserID].End)
+					delete(Search, event.Source.UserID)
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("camp search",
+						&linebot.CarouselTemplate{
+							Columns:          Camp_Search_Remain(*value),
+							ImageAspectRatio: "rectangle",
+							ImageSize:        "cover",
+						})).Do()
 
 				}
 
