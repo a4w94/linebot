@@ -43,9 +43,9 @@ func TestData() {
 	all, _ := product.GetAll()
 	fmt.Println(all)
 
-	t, _ := time.Parse("2006-01-02", "2022-09-04")
+	t, _ := time.Parse("2006-01-02", "2022-09-25")
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		t = t.AddDate(0, 0, 1)
 		var r_n = 5
 
@@ -82,8 +82,8 @@ func GetData() {
 		fmt.Println(p, p.ID)
 	}
 	var t line.Search_Time
-	t.Start, _ = time.Parse("2006-01-02", "2022-09-07")
-	t.End, _ = time.Parse("2006-01-02", "2022-09-11")
+	t.Start, _ = time.Parse("2006-01-02", "2022-09-25")
+	t.End, _ = time.Parse("2006-01-02", "2022-09-30")
 	r := line.SearchRemainCamp(t)
 	for _, t := range r {
 		fmt.Println(t.Product)
