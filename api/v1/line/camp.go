@@ -104,17 +104,13 @@ func CampReply(c *gin.Context) {
 				case "get_start_time":
 					date := event.Postback.Params.Date
 					str := fmt.Sprintf("起始日期:%s", date)
-					fmt.Println(date)
+					fmt.Println("get start time", date)
 					value.Start, _ = time.Parse("2006-01-02", date)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位結束日期", &linebot.ButtonsTemplate{
 						Title: "選擇訂位結束日期",
 						Text:  str,
 						Actions: []linebot.TemplateAction{
 
-							&linebot.PostbackAction{
-								Label: str,
-								Data:  "",
-							},
 							&linebot.DatetimePickerAction{
 								Label:   "結束日期",
 								Data:    "action=search&type=get_end_time",
