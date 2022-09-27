@@ -90,8 +90,7 @@ func CampReply(c *gin.Context) {
 				switch data.Type {
 				case "go":
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位起始日期", &linebot.ButtonsTemplate{
-						Title: "選擇訂位起始日期",
-						Text:  "",
+						Text: "選擇訂位起始日期",
 						Actions: []linebot.TemplateAction{
 							&linebot.DatetimePickerAction{
 								Label:   "起始日期",
