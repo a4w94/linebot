@@ -90,7 +90,7 @@ func CampReply(c *gin.Context) {
 				switch data.Type {
 				case "go":
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位起始日期", &linebot.ButtonsTemplate{
-						Text: "選擇訂位日期",
+						Text: "選擇訂位起始日期",
 						Actions: []linebot.TemplateAction{
 							&linebot.DatetimePickerAction{
 								Label:   "起始日期",
@@ -107,7 +107,8 @@ func CampReply(c *gin.Context) {
 					fmt.Println(date)
 					value.Start, _ = time.Parse("2006-01-02", date)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位結束日期", &linebot.ButtonsTemplate{
-						Text: "選擇訂位日期",
+						Title: "選擇訂位結束日期",
+						Text:  str,
 						Actions: []linebot.TemplateAction{
 
 							&linebot.PostbackAction{
