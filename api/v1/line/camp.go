@@ -107,9 +107,13 @@ func CampReply(c *gin.Context) {
 					fmt.Println("get start time", date)
 					value.Start, _ = time.Parse("2006-01-02", date)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位結束日期", &linebot.ButtonsTemplate{
-						Title: "選擇訂位結束日期",
-						Text:  str,
+
+						Text: "選擇訂位結束日期",
 						Actions: []linebot.TemplateAction{
+							&linebot.PostbackAction{
+								Label: str,
+								Data:  "action=none",
+							},
 
 							&linebot.DatetimePickerAction{
 								Label:   "結束日期",
@@ -182,6 +186,10 @@ func Is_Name_Exist(name string) (product.Product, bool) {
 func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 
 	camp_searchs := SearchRemainCamp(t)
+	fmt.Println("input search time ", t)
+	for _, r := range camp_searchs {
+		fmt.Println(r)
+	}
 	for _, s := range camp_searchs {
 		remain_num := fmt.Sprintf("剩餘 %d 帳", s.RemainMinAmount)
 		des := fmt.Sprintf("%s-%s\n%s", t.Start, t.End, remain_num)
