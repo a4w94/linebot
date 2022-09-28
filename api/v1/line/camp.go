@@ -87,6 +87,8 @@ func CampReply(c *gin.Context) {
 				if !isExist {
 					Search[event.Source.UserID] = &Search_Time{}
 				}
+				start := value.Start.Format("2006-01-02")
+				end := value.End.Format("2006-01-02")
 				switch data.Type {
 				case "go":
 
@@ -104,7 +106,7 @@ func CampReply(c *gin.Context) {
 					})).Do()
 				case "get_start_time":
 					date := event.Postback.Params.Date
-					str := fmt.Sprintf("起始日期:%s", date)
+					// str := fmt.Sprintf("起始日期:%s", date)
 					fmt.Println("get start time", date)
 					value.Start, _ = time.Parse("2006-01-02", date)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
@@ -112,14 +114,14 @@ func CampReply(c *gin.Context) {
 						Text: "選擇訂位日期",
 						Actions: []linebot.TemplateAction{
 							&linebot.DatetimePickerAction{
-								Label:   str,
+								Label:   fmt.Sprintf("起始日期 %s", start),
 								Data:    "action=search&type=get_start_time",
 								Mode:    "date",
 								Initial: time.Now().Format("2006-01-02"),
 								Min:     time.Now().Format("2006-01-02"),
 							},
 							&linebot.DatetimePickerAction{
-								Label:   "結束日期",
+								Label:   fmt.Sprintf("結束日期 %s", end),
 								Data:    "action=search&type=get_end_time",
 								Mode:    "date",
 								Initial: date,
@@ -131,9 +133,7 @@ func CampReply(c *gin.Context) {
 				case "get_end_time":
 					date := event.Postback.Params.Date
 
-					str := fmt.Sprintf("結束日期:%s", date)
 					value.End, _ = time.Parse("2006-01-02", date)
-					fmt.Println(str)
 					fmt.Println("Start Time", Search[event.Source.UserID].Start)
 					fmt.Println("End Time", Search[event.Source.UserID].End)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
@@ -141,18 +141,18 @@ func CampReply(c *gin.Context) {
 						Text: "選擇訂位日期",
 						Actions: []linebot.TemplateAction{
 							&linebot.DatetimePickerAction{
-								Label:   str,
+								Label:   fmt.Sprintf("起始日期 %s", start),
 								Data:    "action=search&type=get_start_time",
 								Mode:    "date",
 								Initial: time.Now().Format("2006-01-02"),
 								Min:     time.Now().Format("2006-01-02"),
 							},
 							&linebot.DatetimePickerAction{
-								Label:   "結束日期",
+								Label:   fmt.Sprintf("結束日期 %s", end),
 								Data:    "action=search&type=get_end_time",
 								Mode:    "date",
-								Initial: value.Start.Format("2006-01-02"),
-								Min:     value.Start.Format("2006-01-02"),
+								Initial: start,
+								Min:     start,
 							},
 							&linebot.PostbackAction{
 								Label: "查詢",
