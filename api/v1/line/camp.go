@@ -89,8 +89,9 @@ func CampReply(c *gin.Context) {
 				}
 				switch data.Type {
 				case "go":
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位起始日期", &linebot.ButtonsTemplate{
-						Text: "選擇訂位起始日期",
+
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
+						Text: "選擇訂位日期",
 						Actions: []linebot.TemplateAction{
 							&linebot.DatetimePickerAction{
 								Label:   "起始日期",
@@ -106,9 +107,9 @@ func CampReply(c *gin.Context) {
 					str := fmt.Sprintf("起始日期:%s", date)
 					fmt.Println("get start time", date)
 					value.Start, _ = time.Parse("2006-01-02", date)
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位結束日期", &linebot.ButtonsTemplate{
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
 
-						Text: "選擇訂位結束日期",
+						Text: "選擇訂位日期",
 						Actions: []linebot.TemplateAction{
 							&linebot.DatetimePickerAction{
 								Label:   str,
@@ -135,6 +136,31 @@ func CampReply(c *gin.Context) {
 					fmt.Println(str)
 					fmt.Println("Start Time", Search[event.Source.UserID].Start)
 					fmt.Println("End Time", Search[event.Source.UserID].End)
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
+
+						Text: "選擇訂位日期",
+						Actions: []linebot.TemplateAction{
+							&linebot.DatetimePickerAction{
+								Label:   str,
+								Data:    "action=search&type=get_start_time",
+								Mode:    "date",
+								Initial: time.Now().Format("2006-01-02"),
+								Min:     time.Now().Format("2006-01-02"),
+							},
+							&linebot.DatetimePickerAction{
+								Label:   "結束日期",
+								Data:    "action=search&type=get_end_time",
+								Mode:    "date",
+								Initial: value.Start.Format("2006-01-02"),
+								Min:     value.Start.Format("2006-01-02"),
+							},
+							&linebot.PostbackAction{
+								Label: "查詢",
+								Data:  "action=search&type=start_search",
+							},
+						},
+					})).Do()
+				case "start_search":
 					delete(Search, event.Source.UserID)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("Camp Search",
 						&linebot.CarouselTemplate{
@@ -143,7 +169,6 @@ func CampReply(c *gin.Context) {
 							ImageAspectRatio: "rectangle",
 							ImageSize:        "cover",
 						})).Do()
-
 				}
 
 			}
@@ -196,7 +221,7 @@ func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 	for _, s := range camp_searchs {
 		remain_num := fmt.Sprintf("剩餘 %d 帳", s.RemainMinAmount)
 
-		des := fmt.Sprintf("%s-%s\n%s", t.Start.Format("2006-01-02"), t.End.Format("2006-01-02"), remain_num)
+		des := fmt.Sprintf("%s ~ %s\n%s", t.Start.Format("2006-01-02"), t.End.Format("2006-01-02"), remain_num)
 		fmt.Println(s.Product.ImageUri[0], s.Product.CampRoundName, des)
 		tmp := linebot.CarouselColumn{
 			ThumbnailImageURL:    s.Product.ImageUri[0],
