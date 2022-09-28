@@ -183,8 +183,8 @@ func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 
 	camp_searchs := SearchRemainCamp(t)
 	fmt.Println("input search time ", t)
-	for _, r := range camp_searchs {
-		fmt.Println(r)
+	for i, r := range camp_searchs {
+		fmt.Println(i, ":", r.Stocks)
 	}
 	for _, s := range camp_searchs {
 		remain_num := fmt.Sprintf("剩餘 %d 帳", s.RemainMinAmount)
@@ -197,7 +197,8 @@ func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label: "我要訂位",
-					Data:  fmt.Sprintf("action=order&item=%d", s.Product.ID),
+					//Data:  fmt.Sprintf("action=order&item=%d", s.Product.ID),
+					Data: "action=order",
 				},
 			},
 		}
