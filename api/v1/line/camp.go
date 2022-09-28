@@ -138,22 +138,8 @@ func CampReply(c *gin.Context) {
 					delete(Search, event.Source.UserID)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("Camp Search",
 						&linebot.CarouselTemplate{
-							//Columns:          Camp_Search_Remain(*value),
-							Columns: []*linebot.CarouselColumn{
-								{
-									ThumbnailImageURL:    "https://i.imgur.com/XXwY96T.jpeg",
-									ImageBackgroundColor: "#000000",
-									Title:                "A區",
-									Text:                 "剩下3帳",
-									Actions: []linebot.TemplateAction{
-										&linebot.PostbackAction{
-											Label: "我要訂位",
-											//Data:  fmt.Sprintf("action=order&item=%d", s.Product.ID),
-											Data: "action=order",
-										},
-									},
-								},
-							},
+							Columns: Camp_Search_Remain(*value),
+
 							ImageAspectRatio: "rectangle",
 							ImageSize:        "cover",
 						})).Do()
@@ -210,6 +196,7 @@ func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 	for _, s := range camp_searchs {
 		remain_num := fmt.Sprintf("剩餘 %d 帳", s.RemainMinAmount)
 		des := fmt.Sprintf("%s-%s\n%s", t.Start, t.End, remain_num)
+		fmt.Println(s.Product.ImageUri[0], s.Product.CampRoundName, des)
 		tmp := linebot.CarouselColumn{
 			ThumbnailImageURL:    s.Product.ImageUri[0],
 			ImageBackgroundColor: "#000000",
