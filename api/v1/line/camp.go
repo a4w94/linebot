@@ -107,15 +107,21 @@ func CampReply(c *gin.Context) {
 					fmt.Println("get start time", date)
 					value.Start, _ = time.Parse("2006-01-02", date)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位結束日期", &linebot.ButtonsTemplate{
-						Title: "選擇訂位結束日期",
-						Text:  str,
-						Actions: []linebot.TemplateAction{
 
+						Text: "選擇訂位結束日期",
+						Actions: []linebot.TemplateAction{
+							&linebot.DatetimePickerAction{
+								Label:   str,
+								Data:    "action=search&type=get_start_time",
+								Mode:    "date",
+								Initial: time.Now().Format("2006-01-02"),
+								Min:     time.Now().Format("2006-01-02"),
+							},
 							&linebot.DatetimePickerAction{
 								Label:   "結束日期",
 								Data:    "action=search&type=get_end_time",
 								Mode:    "date",
-								Initial: time.Now().Format("2006-01-02"),
+								Initial: date,
 								Min:     date,
 							},
 						},
@@ -130,9 +136,24 @@ func CampReply(c *gin.Context) {
 					fmt.Println("Start Time", Search[event.Source.UserID].Start)
 					fmt.Println("End Time", Search[event.Source.UserID].End)
 					delete(Search, event.Source.UserID)
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("camp search",
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("Camp Search",
 						&linebot.CarouselTemplate{
-							Columns:          Camp_Search_Remain(*value),
+							//Columns:          Camp_Search_Remain(*value),
+							Columns: []*linebot.CarouselColumn{
+								{
+									ThumbnailImageURL:    "https://i.imgur.com/XXwY96T.jpeg",
+									ImageBackgroundColor: "#000000",
+									Title:                "A區",
+									Text:                 "剩下3帳",
+									Actions: []linebot.TemplateAction{
+										&linebot.PostbackAction{
+											Label: "我要訂位",
+											//Data:  fmt.Sprintf("action=order&item=%d", s.Product.ID),
+											Data: "action=order",
+										},
+									},
+								},
+							},
 							ImageAspectRatio: "rectangle",
 							ImageSize:        "cover",
 						})).Do()
@@ -202,6 +223,7 @@ func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 				},
 			},
 		}
+		fmt.Println(tmp)
 		c_t = append(c_t, &tmp)
 	}
 
