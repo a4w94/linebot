@@ -177,8 +177,12 @@ func CampReply(c *gin.Context) {
 					case value.Start.IsZero() && !value.End.IsZero():
 						start_time = "起始日期 "
 						end_time = fmt.Sprintf("結束日期 %s", value.End.Format("2006-01-02"))
-
+					default:
+						start_time = "起始日期 "
+						end_time = "結束日期 "
 					}
+
+					fmt.Println(start_time, start_init, start_min, start_Max)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
 
 						Text: "選擇訂位日期",
@@ -189,7 +193,7 @@ func CampReply(c *gin.Context) {
 								Mode:    "date",
 								Initial: start_init,
 								Min:     start_min,
-								Max:     start_Max,
+								//Max:     start_Max,
 							},
 							&linebot.DatetimePickerAction{
 								Label:   end_time,
@@ -197,7 +201,7 @@ func CampReply(c *gin.Context) {
 								Mode:    "date",
 								Initial: end_init,
 								Min:     end_min,
-								Max:     end_Max,
+								//Max:     end_Max,
 							},
 							&linebot.PostbackAction{
 								Label: "查詢",
@@ -205,7 +209,7 @@ func CampReply(c *gin.Context) {
 							},
 						},
 					})).Do()
-					reply_date()
+					//reply_date()
 				case "get_start_time":
 					date := event.Postback.Params.Date
 					// str := fmt.Sprintf("起始日期:%s", date)
