@@ -88,63 +88,63 @@ func CampReply(c *gin.Context) {
 					Search[event.Source.UserID] = &Search_Time{}
 				}
 
-				reply_date := func() {
-					var (
-						start_time string
-						start_init string
-						start_min  string
-						start_Max  string
+				// reply_date := func() {
+				// 	var (
+				// 		start_time string
+				// 		start_init string
+				// 		start_min  string
+				// 		start_Max  string
 
-						end_time string
-						end_init string
-						end_min  string
-						end_Max  string
-					)
-					init := time.Now().Format("2006-01-02")
-					Max := time.Now().AddDate(1, 0, 0).Format("2006-01-02")
-					start_init = init
-					start_min = init
-					end_init = init
-					end_min = init
-					start_Max = Max
-					end_Max = Max
+				// 		end_time string
+				// 		end_init string
+				// 		end_min  string
+				// 		end_Max  string
+				// 	)
+				// 	init := time.Now().Format("2006-01-02")
+				// 	Max := time.Now().AddDate(1, 0, 0).Format("2006-01-02")
+				// 	start_init = init
+				// 	start_min = init
+				// 	end_init = init
+				// 	end_min = init
+				// 	start_Max = Max
+				// 	end_Max = Max
 
-					switch {
-					case !value.Start.IsZero() && value.End.IsZero():
-						start_time = fmt.Sprintf("起始日期 %s", value.Start.Format("2006-01-02"))
-						end_time = "結束日期 "
-					case value.Start.IsZero() && !value.End.IsZero():
-						start_time = "起始日期 "
-						end_time = fmt.Sprintf("結束日期 %s", value.End.Format("2006-01-02"))
+				// 	switch {
+				// 	case !value.Start.IsZero() && value.End.IsZero():
+				// 		start_time = fmt.Sprintf("起始日期 %s", value.Start.Format("2006-01-02"))
+				// 		end_time = "結束日期 "
+				// 	case value.Start.IsZero() && !value.End.IsZero():
+				// 		start_time = "起始日期 "
+				// 		end_time = fmt.Sprintf("結束日期 %s", value.End.Format("2006-01-02"))
 
-					}
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
+				// 	}
+				// 	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
 
-						Text: "選擇訂位日期",
-						Actions: []linebot.TemplateAction{
-							&linebot.DatetimePickerAction{
-								Label:   start_time,
-								Data:    "action=search&type=get_start_time",
-								Mode:    "date",
-								Initial: start_init,
-								Min:     start_min,
-								Max:     start_Max,
-							},
-							&linebot.DatetimePickerAction{
-								Label:   end_time,
-								Data:    "action=search&type=get_end_time",
-								Mode:    "date",
-								Initial: end_init,
-								Min:     end_min,
-								Max:     end_Max,
-							},
-							&linebot.PostbackAction{
-								Label: "查詢",
-								Data:  "action=search&type=start_search",
-							},
-						},
-					})).Do()
-				}
+				// 		Text: "選擇訂位日期",
+				// 		Actions: []linebot.TemplateAction{
+				// 			&linebot.DatetimePickerAction{
+				// 				Label:   start_time,
+				// 				Data:    "action=search&type=get_start_time",
+				// 				Mode:    "date",
+				// 				Initial: start_init,
+				// 				Min:     start_min,
+				// 				Max:     start_Max,
+				// 			},
+				// 			&linebot.DatetimePickerAction{
+				// 				Label:   end_time,
+				// 				Data:    "action=search&type=get_end_time",
+				// 				Mode:    "date",
+				// 				Initial: end_init,
+				// 				Min:     end_min,
+				// 				Max:     end_Max,
+				// 			},
+				// 			&linebot.PostbackAction{
+				// 				Label: "查詢",
+				// 				Data:  "action=search&type=start_search",
+				// 			},
+				// 		},
+				// 	})).Do()
+				// }
 
 				switch data.Type {
 
@@ -171,12 +171,12 @@ func CampReply(c *gin.Context) {
 					end_Max = Max
 
 					switch {
-					case !value.Start.IsZero() && value.End.IsZero():
-						start_time = fmt.Sprintf("起始日期 %s", value.Start.Format("2006-01-02"))
-						end_time = "結束日期 "
-					case value.Start.IsZero() && !value.End.IsZero():
-						start_time = "起始日期 "
-						end_time = fmt.Sprintf("結束日期 %s", value.End.Format("2006-01-02"))
+					// case !value.Start.IsZero() && value.End.IsZero():
+					// 	start_time = fmt.Sprintf("起始日期 %s", value.Start.Format("2006-01-02"))
+					// 	end_time = "結束日期 "
+					// case value.Start.IsZero() && !value.End.IsZero():
+					// 	start_time = "起始日期 "
+					// 	end_time = fmt.Sprintf("結束日期 %s", value.End.Format("2006-01-02"))
 					default:
 						start_time = "起始日期 "
 						end_time = "結束日期 "
@@ -216,7 +216,7 @@ func CampReply(c *gin.Context) {
 					fmt.Println("get start time", date)
 					value.Start, _ = time.Parse("2006-01-02", date)
 
-					reply_date()
+					//reply_date()
 
 				case "get_end_time":
 					date := event.Postback.Params.Date
@@ -225,7 +225,7 @@ func CampReply(c *gin.Context) {
 					fmt.Println("Start Time", Search[event.Source.UserID].Start)
 					fmt.Println("End Time", Search[event.Source.UserID].End)
 
-					reply_date()
+					//reply_date()
 
 				case "start_search":
 					if !value.Start.IsZero() && !value.End.IsZero() {
