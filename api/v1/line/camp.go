@@ -109,21 +109,22 @@ func CampReply(c *gin.Context) {
 					start_Max = Max
 					end_Max = Max
 					fmt.Println(start_time, start_init, start_min, start_Max, end_Max, end_time, end_init, end_min)
+					start_time = "起始日期 "
+					end_time = "結束日期 "
+					// switch {
+					// case !value.Start.IsZero() && value.End.IsZero():
+					// 	date := value.Start.Format("2006-01-02")
+					// 	start_time = fmt.Sprintf("起始日期 %s", date)
+					// 	end_time = "結束日期 "
+					// case value.Start.IsZero() && !value.End.IsZero():
+					// 	date := value.End.Format("2006-01-02")
+					// 	start_time = "起始日期 "
+					// 	end_time = fmt.Sprintf("結束日期 %s", date)
+					// default:
+					// 	start_time = "起始日期 "
+					// 	end_time = "結束日期 "
 
-					switch {
-					case !value.Start.IsZero() && value.End.IsZero():
-						date := value.Start.Format("2006-01-02")
-						start_time = fmt.Sprintf("起始日期 %s", date)
-						end_time = "結束日期 "
-					case value.Start.IsZero() && !value.End.IsZero():
-						date := value.End.Format("2006-01-02")
-						start_time = "起始日期 "
-						end_time = fmt.Sprintf("結束日期 %s", date)
-					default:
-						start_time = "起始日期 "
-						end_time = "結束日期 "
-
-					}
+					// }
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
 
 						Text: "選擇訂位日期",
