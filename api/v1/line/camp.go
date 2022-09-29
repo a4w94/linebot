@@ -182,7 +182,7 @@ func CampReply(c *gin.Context) {
 						end_time = "結束日期 "
 					}
 
-					fmt.Println(start_time, start_init, start_min, start_Max)
+					fmt.Println(start_time, start_init, start_min, start_Max, end_Max)
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
 
 						Text: "選擇訂位日期",
