@@ -111,6 +111,15 @@ func CampReply(c *gin.Context) {
 					fmt.Println(start_time, start_init, start_min, start_Max, end_Max, end_time, end_init, end_min)
 					start_time = "起始日期 "
 					end_time = "結束日期 "
+
+					fmt.Println(value, value.Start.IsZero(), value.End.IsZero(), value.Start.Format("2006-01-02"), value.End.Format("2006-01-02"))
+					if !value.Start.IsZero() {
+						start_time += value.Start.Format("2006-01-02")
+					}
+
+					if !value.End.IsZero() {
+						end_time += value.End.Format("2006-01-02")
+					}
 					// switch {
 					// case !value.Start.IsZero() && value.End.IsZero():
 					// 	date := value.Start.Format("2006-01-02")
