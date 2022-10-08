@@ -124,8 +124,8 @@ func CreatRichMenu_B(bot *linebot.Client, aid string) string {
 			{
 				Bounds: linebot.RichMenuBounds{X: 0, Y: 234, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
-					Type: linebot.RichMenuActionTypePostback,
-					Data: "action=search&type=go",
+					Type: linebot.RichMenuActionTypeMessage,
+					Text: "我要訂位",
 				},
 			},
 

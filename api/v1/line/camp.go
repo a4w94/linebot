@@ -41,6 +41,87 @@ func CampReply(c *gin.Context) {
 
 	for _, event := range events {
 
+		reply_date := func() {
+			value, isExist := Search[event.Source.UserID]
+			if !isExist {
+				Search[event.Source.UserID] = &Search_Time{}
+			}
+			var (
+				start_time string
+				start_init string
+				start_min  string
+				start_Max  string
+
+				end_time string
+				end_init string
+				end_min  string
+				end_Max  string
+			)
+			init := time.Now().Format("2006-01-02")
+			Max := time.Now().AddDate(1, 0, 0).Format("2006-01-02")
+			start_init = init
+			start_min = init
+			end_init = init
+			end_min = init
+			start_Max = Max
+			end_Max = Max
+			start_time = "起始日期 "
+			end_time = "結束日期 "
+
+			if value != nil {
+
+				switch {
+				case !value.Start.IsZero() && value.End.IsZero():
+					date := value.Start.Format("2006-01-02")
+					start_time = fmt.Sprintf("起始日期 %s", date)
+					end_time = "結束日期 "
+					end_init = date
+					end_min = date
+				case value.Start.IsZero() && !value.End.IsZero():
+					date := value.End.Format("2006-01-02")
+					start_time = "起始日期 "
+					end_time = fmt.Sprintf("結束日期 %s", date)
+					start_Max = date
+				case !value.Start.IsZero() && !value.End.IsZero():
+					date_start := value.Start.Format("2006-01-02")
+					date_end := value.End.Format("2006-01-02")
+
+					start_time = fmt.Sprintf("起始日期 %s", date_start)
+					end_time = fmt.Sprintf("結束日期 %s", date_end)
+
+					end_init = date_start
+					end_min = date_start
+					start_Max = date_end
+				}
+			}
+			bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
+
+				Text: "選擇訂位日期",
+				Actions: []linebot.TemplateAction{
+					&linebot.DatetimePickerAction{
+						Label:   start_time,
+						Data:    "action=search&type=get_start_time",
+						Mode:    "date",
+						Initial: start_init,
+						Min:     start_min,
+						Max:     start_Max,
+					},
+					&linebot.DatetimePickerAction{
+						Label:   end_time,
+						Data:    "action=search&type=get_end_time",
+						Mode:    "date",
+						Initial: end_init,
+						Min:     end_min,
+						Max:     end_Max,
+					},
+					&linebot.PostbackAction{
+						Label: "查詢",
+						Data:  "action=search&type=start_search",
+					},
+				},
+			})).Do()
+		}
+
 		if event.Type == linebot.EventTypeMessage {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
@@ -55,6 +136,8 @@ func CampReply(c *gin.Context) {
 				}
 
 				switch {
+				case text_trimspace == "我要訂位":
+					reply_date()
 
 				case text_trimspace == "營地位置":
 					bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069)).Do()
@@ -83,87 +166,6 @@ func CampReply(c *gin.Context) {
 			data := Parase_postback(event.Postback.Data)
 			switch data.Action {
 			case "search":
-				value, isExist := Search[event.Source.UserID]
-				if !isExist {
-					Search[event.Source.UserID] = &Search_Time{}
-				}
-
-				reply_date := func() {
-					var (
-						start_time string
-						start_init string
-						start_min  string
-						start_Max  string
-
-						end_time string
-						end_init string
-						end_min  string
-						end_Max  string
-					)
-					init := time.Now().Format("2006-01-02")
-					Max := time.Now().AddDate(1, 0, 0).Format("2006-01-02")
-					start_init = init
-					start_min = init
-					end_init = init
-					end_min = init
-					start_Max = Max
-					end_Max = Max
-					start_time = "起始日期 "
-					end_time = "結束日期 "
-
-					if value != nil {
-
-						switch {
-						case !value.Start.IsZero() && value.End.IsZero():
-							date := value.Start.Format("2006-01-02")
-							start_time = fmt.Sprintf("起始日期 %s", date)
-							end_time = "結束日期 "
-							end_init = date
-							end_min = date
-						case value.Start.IsZero() && !value.End.IsZero():
-							date := value.End.Format("2006-01-02")
-							start_time = "起始日期 "
-							end_time = fmt.Sprintf("結束日期 %s", date)
-							start_Max = date
-						case !value.Start.IsZero() && !value.End.IsZero():
-							date_start := value.Start.Format("2006-01-02")
-							date_end := value.End.Format("2006-01-02")
-
-							start_time = fmt.Sprintf("起始日期 %s", date_start)
-							end_time = fmt.Sprintf("結束日期 %s", date_end)
-
-							end_init = date_start
-							end_min = date_start
-							start_Max = date_end
-						}
-					}
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{
-
-						Text: "選擇訂位日期",
-						Actions: []linebot.TemplateAction{
-							&linebot.DatetimePickerAction{
-								Label:   start_time,
-								Data:    "action=search&type=get_start_time",
-								Mode:    "date",
-								Initial: start_init,
-								Min:     start_min,
-								Max:     start_Max,
-							},
-							&linebot.DatetimePickerAction{
-								Label:   end_time,
-								Data:    "action=search&type=get_end_time",
-								Mode:    "date",
-								Initial: end_init,
-								Min:     end_min,
-								Max:     end_Max,
-							},
-							&linebot.PostbackAction{
-								Label: "查詢",
-								Data:  "action=search&type=start_search",
-							},
-						},
-					})).Do()
-				}
 
 				switch data.Type {
 
@@ -174,25 +176,25 @@ func CampReply(c *gin.Context) {
 					date := event.Postback.Params.Date
 					// str := fmt.Sprintf("起始日期:%s", date)
 					fmt.Println("get start time", date)
-					value.Start, _ = time.Parse("2006-01-02", date)
+					Search[event.Source.UserID].Start, _ = time.Parse("2006-01-02", date)
 
 					reply_date()
 
 				case "get_end_time":
 					date := event.Postback.Params.Date
 
-					value.End, _ = time.Parse("2006-01-02", date)
+					Search[event.Source.UserID].End, _ = time.Parse("2006-01-02", date)
 					fmt.Println("Start Time", Search[event.Source.UserID].Start)
 					fmt.Println("End Time", Search[event.Source.UserID].End)
 
 					reply_date()
 
 				case "start_search":
-					if !value.Start.IsZero() && !value.End.IsZero() {
+					if !Search[event.Source.UserID].Start.IsZero() && !Search[event.Source.UserID].End.IsZero() {
 						delete(Search, event.Source.UserID)
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("Camp Search",
 							&linebot.CarouselTemplate{
-								Columns: Camp_Search_Remain(*value),
+								Columns: Camp_Search_Remain(*Search[event.Source.UserID]),
 
 								ImageAspectRatio: "rectangle",
 								ImageSize:        "cover",
@@ -335,4 +337,8 @@ func get_string_data(str string) string {
 	i := strings.Index(str, "=")
 	tmp := str[i+1:]
 	return tmp
+}
+
+func reply_search_date() {
+
 }
