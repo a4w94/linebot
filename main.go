@@ -40,8 +40,8 @@ func TestData() {
 	}
 	p1.Add()
 	p2.Add()
-	//all, _ := product.GetAll()
-	//fmt.Println(all)
+	all, _ := product.GetAll()
+	fmt.Println(all)
 
 	t, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 
