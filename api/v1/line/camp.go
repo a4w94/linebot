@@ -68,7 +68,6 @@ func CampReply(c *gin.Context) {
 
 				switch {
 				case text_trimspace == "我要訂位":
-					delete(Search, event.Source.UserID)
 					reply_date_limit(bot, event)
 
 				case text_trimspace == "營地位置":
@@ -120,9 +119,12 @@ func CampReply(c *gin.Context) {
 
 				case "start_search":
 					if !Search[event.Source.UserID].Start.IsZero() && !Search[event.Source.UserID].End.IsZero() {
+						result := Camp_Search_Remain(*Search[event.Source.UserID])
+						delete(Search, event.Source.UserID)
+
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("Camp Search",
 							&linebot.CarouselTemplate{
-								Columns: Camp_Search_Remain(*Search[event.Source.UserID]),
+								Columns: result,
 
 								ImageAspectRatio: "rectangle",
 								ImageSize:        "cover",
