@@ -49,9 +49,6 @@ func TestData() {
 		t = t.AddDate(0, 0, 1)
 		var r_n = 5
 
-		if i < 5 {
-			r_n = i
-		}
 		var tmp = stock.Stock{
 			Date:      t,
 			ProductId: 1,

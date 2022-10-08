@@ -161,9 +161,10 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 			Text:                 des,
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
-					Label: "我要訂位",
-					Data:  fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
-					//Data: "action=order",
+					Label:       "我要訂位",
+					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
+					InputOption: linebot.InputOptionOpenKeyboard,
+					FillInText:  "---\nName: \nPhone: \nBirthday: \n---",
 				},
 			},
 		}
@@ -241,7 +242,7 @@ func reply_date_limit(bot *linebot.Client, event *linebot.Event) {
 		end_min  string
 		end_Max  string
 	)
-	init := time.Now().Format("2006-01-02")
+	init := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 	Max := time.Now().AddDate(0, 0, 365).Format("2006-01-02")
 	start_init = init
 	start_min = init
