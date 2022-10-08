@@ -16,18 +16,6 @@ type Search_Time struct {
 	End   time.Time
 }
 
-type search_date_limit struct {
-	start_time string
-	start_init string
-	start_min  string
-	start_Max  string
-
-	end_time string
-	end_init string
-	end_min  string
-	end_Max  string
-}
-
 var Search map[string]*Search_Time
 
 func init() {
@@ -58,12 +46,9 @@ func CampReply(c *gin.Context) {
 			case *linebot.TextMessage:
 				text_trimspace := strings.TrimSpace(message.Text)
 
+				//營區資訊查詢區域
 				if product, ok := Is_Name_Exist(text_trimspace); ok {
-					tmp := Img_Carousel_CampRound_Info(product)
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("img carousel",
-						&linebot.ImageCarouselTemplate{
-							Columns: tmp,
-						})).Do()
+					Img_Carousel_CampRound_Info(bot, event, product)
 				}
 
 				switch {
@@ -74,21 +59,8 @@ func CampReply(c *gin.Context) {
 					bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069)).Do()
 
 				case text_trimspace == "營地資訊":
-					tmp := Quick_Reply_CampRoundName()
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("選擇分區").WithQuickReplies(&linebot.QuickReplyItems{
-						Items: tmp,
-					})).Do()
+					Quick_Reply_CampRoundName(bot, event)
 
-					// case strings.Contains(text_trimspace, "起始日期"):
-					// 	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("date range", linebot.NewButtonsTemplate("", "", "選擇日期",
-					// 		linebot.NewDatetimePickerAction("結束日期", "action=search&type=get_end_time", "date", time.Now().Format("2006-01-02"), "", time.Now().Format("2006-01-02")),
-					// 	))).Do()
-					// case strings.Contains(text_trimspace, "結束日期"):
-					// 	value := Search[event.Source.UserID]
-
-					// default:
-					// 	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(text_trimspace)).Do()
-					// }
 				}
 			}
 		}
@@ -119,16 +91,8 @@ func CampReply(c *gin.Context) {
 
 				case "start_search":
 					if !Search[event.Source.UserID].Start.IsZero() && !Search[event.Source.UserID].End.IsZero() {
-						result := Camp_Search_Remain(*Search[event.Source.UserID])
-						delete(Search, event.Source.UserID)
+						Camp_Search_Remain(bot, event, *Search[event.Source.UserID])
 
-						bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("Camp Search",
-							&linebot.CarouselTemplate{
-								Columns: result,
-
-								ImageAspectRatio: "rectangle",
-								ImageSize:        "cover",
-							})).Do()
 					}
 				}
 
@@ -143,8 +107,8 @@ func CampReply(c *gin.Context) {
 }
 
 //快速回覆營位分區名稱
-func Quick_Reply_CampRoundName() (q_p []*linebot.QuickReplyButton) {
-	fmt.Println("Quick_Reply_CampRoundName")
+func Quick_Reply_CampRoundName(bot *linebot.Client, event *linebot.Event) {
+	var q_p []*linebot.QuickReplyButton
 	products, _ := product.GetAll()
 	for _, p := range products {
 		tmp := &linebot.QuickReplyButton{
@@ -156,7 +120,10 @@ func Quick_Reply_CampRoundName() (q_p []*linebot.QuickReplyButton) {
 		q_p = append(q_p, tmp)
 	}
 	fmt.Println("Quick_Reply_CampRoundName", q_p)
-	return q_p
+	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("選擇分區").WithQuickReplies(&linebot.QuickReplyItems{
+		Items: q_p,
+	})).Do()
+
 }
 
 //確認輸入營位分區名是否存在
@@ -175,8 +142,8 @@ func Is_Name_Exist(name string) (product.Product, bool) {
 }
 
 //搜尋剩餘營位
-func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
-
+func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time) {
+	var c_t []*linebot.CarouselColumn
 	camp_searchs := SearchRemainCamp(t)
 	fmt.Println("input search time ", t)
 	for i, r := range camp_searchs {
@@ -195,7 +162,7 @@ func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label: "我要訂位",
-					Data:  fmt.Sprintf("action=order&item=%d", s.Product.ID),
+					Data:  fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					//Data: "action=order",
 				},
 			},
@@ -203,8 +170,16 @@ func Camp_Search_Remain(t Search_Time) (c_t []*linebot.CarouselColumn) {
 		fmt.Println(tmp)
 		c_t = append(c_t, &tmp)
 	}
+	delete(Search, event.Source.UserID)
 
-	return c_t
+	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("Camp Search",
+		&linebot.CarouselTemplate{
+			Columns: c_t,
+
+			ImageAspectRatio: "rectangle",
+			ImageSize:        "cover",
+		})).Do()
+
 }
 
 func Add_Carousel_Imgae() (c_i []*linebot.ImageCarouselColumn) {
@@ -227,10 +202,10 @@ func Add_Carousel_Imgae() (c_i []*linebot.ImageCarouselColumn) {
 	return c_i
 }
 
-func Img_Carousel_CampRound_Info(product product.Product) (c_t []*linebot.ImageCarouselColumn) {
+func Img_Carousel_CampRound_Info(bot *linebot.Client, event *linebot.Event, product product.Product) {
 	fmt.Println("Img_Carousel_CampRound_Info", product)
+	var c_t []*linebot.ImageCarouselColumn
 	for _, uri := range product.ImageUri {
-		fmt.Println("Img_Carousel_CampRound_Info : URI :", uri)
 		c1 := linebot.ImageCarouselColumn{
 			ImageURL: uri,
 			Action: &linebot.PostbackAction{
@@ -241,7 +216,12 @@ func Img_Carousel_CampRound_Info(product product.Product) (c_t []*linebot.ImageC
 
 		c_t = append(c_t, &c1)
 	}
-	return c_t
+
+	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("img carousel",
+		&linebot.ImageCarouselTemplate{
+			Columns: c_t,
+		})).Do()
+
 }
 
 func reply_date_limit(bot *linebot.Client, event *linebot.Event) {
@@ -331,6 +311,7 @@ type ParseData struct {
 	Action string
 	Item   int
 	Type   string
+	Num    int
 }
 
 func Parase_postback(data string) (p_d ParseData) {
@@ -343,6 +324,8 @@ func Parase_postback(data string) (p_d ParseData) {
 		case strings.Contains(p, "item"):
 			p_d.Item, _ = strconv.Atoi(p)
 		case strings.Contains(p, "type"):
+			p_d.Type = get_string_data(p)
+		case strings.Contains(p, "num"):
 			p_d.Type = get_string_data(p)
 		}
 	}
