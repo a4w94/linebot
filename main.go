@@ -18,7 +18,7 @@ func main() {
 	//db.InitDbContext()
 
 	TestData()
-	GetData()
+	//GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)
@@ -40,18 +40,15 @@ func TestData() {
 	}
 	p1.Add()
 	p2.Add()
-	all, _ := product.GetAll()
-	fmt.Println(all)
+	//all, _ := product.GetAll()
+	//fmt.Println(all)
 
-	t, _ := time.Parse("2006-01-02", "2022-09-25")
+	t, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 
 	for i := 0; i < 20; i++ {
 		t = t.AddDate(0, 0, 1)
-		var r_n = 5
+		var r_n = 5 - i%5
 
-		if i < 5 {
-			r_n = i
-		}
 		var tmp = stock.Stock{
 			Date:      t,
 			ProductId: 1,
