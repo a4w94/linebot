@@ -77,7 +77,6 @@ func CampReply(c *gin.Context) {
 				case text_trimspace == "營地資訊":
 					Quick_Reply_CampRoundName(bot, event)
 				case strings.Contains(text_trimspace, "訂單資訊"):
-					fmt.Println("收到訂單資訊")
 					ok, check := parase_Order_Info(text_trimspace)
 					fmt.Println(ok, check)
 					if ok {
@@ -354,7 +353,7 @@ func parase_Order_Info(info string) (bool, string) {
 	info_map := make(map[string]string)
 	for _, r := range split {
 		arr := strings.Split(r, ":")
-		if arr[0] != "訂位資訊" && arr[0] != "-----------" {
+		if arr[0] != "訂單資訊" && arr[0] != "-----------" {
 			info_map[arr[0]] = arr[1]
 		}
 	}
