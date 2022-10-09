@@ -77,7 +77,9 @@ func CampReply(c *gin.Context) {
 				case text_trimspace == "營地資訊":
 					Quick_Reply_CampRoundName(bot, event)
 				case strings.Contains(text_trimspace, "訂單資訊"):
+					fmt.Println("收到訂單資訊")
 					ok, check := parase_Order_Info(text_trimspace)
+					fmt.Println(ok, check)
 					if ok {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂位資訊",
 							&linebot.ConfirmTemplate{
