@@ -90,7 +90,7 @@ func CampReply(c *gin.Context) {
 										Text:  "是",
 									},
 									&linebot.PostbackAction{
-										Label: "是",
+										Label: "否",
 										Data:  "action=order",
 										Text:  "否",
 									},
@@ -202,7 +202,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 					Label:       "我要訂位",
 					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  fmt.Sprintf("訂單資訊 \n-----------\n區域:%s\n起始日期:%s\n結束日期:%s\n-----------\n訂位者姓名:  \n電話:  \n訂位數量:  \n-----------\n", s.Product.CampRoundName, start, end),
+					FillInText:  fmt.Sprintf("訂單資訊 \n-----------\n區域:%s\n起始日期:%s\n結束日期:%s\n-----------\n訂位者姓名:  \n電話:  \n訂位數量:  \n-----------", s.Product.CampRoundName, start, end),
 				},
 			},
 		}
@@ -367,7 +367,7 @@ func parase_Order_Info(info string) (bool, string) {
 	for i := 0; i < t.NumField(); i++ {
 		tag := t.Field(i).Tag.Get("tag")
 		if v, ok := info_map[tag]; ok {
-			if v == "" {
+			if strings.TrimSpace(v) == "" {
 				return false, fmt.Sprintf("%s不得為空,請重新訂位\n", tag)
 			} else {
 				switch tag {
@@ -389,7 +389,7 @@ func parase_Order_Info(info string) (bool, string) {
 		}
 	}
 
-	order_info := fmt.Sprintf("確認訂位資訊 \n-----------\n區域:%s\n起始日期:%s\n結束日期:%s\n-----------\n訂位者姓名:%s\n電話:%s\n訂位數量:%s\n-----------\n", tmp.Region, tmp.Start, tmp.End, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
+	order_info := fmt.Sprintf("確認訂位資訊 \n-----------\n區域:%s\n起始日期:%s\n結束日期:%s\n-----------\n訂位者姓名:%s\n電話:%s\n訂位數量:%s", tmp.Region, tmp.Start, tmp.End, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
 
 	return true, order_info
 }
