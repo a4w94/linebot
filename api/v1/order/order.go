@@ -13,7 +13,6 @@ func CreateOrder(c *gin.Context) {
 		UserID:      "k123",
 		UserName:    "JJ",
 		PhoneNumber: "0909990",
-		Email:       "a4w4@gga.com.tw",
 	}
 	var item = order.OrderItem{
 		OrderSN:      orders.OrderSN,

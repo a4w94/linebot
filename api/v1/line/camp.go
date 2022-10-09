@@ -3,6 +3,7 @@ package line
 import (
 	"fmt"
 	"linebot/internal/model/product"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,21 @@ import (
 type Search_Time struct {
 	Start time.Time
 	End   time.Time
+}
+type ParseData struct {
+	Action string
+	Item   int
+	Type   string
+	Num    int
+}
+
+type Order_Info struct {
+	Region      string `tag:"區域"`
+	Start       string `tag:"起始日期"`
+	End         string `tag:"結束日期"`
+	UserName    string `tag:"訂位者姓名"`
+	PhoneNumber string `tag:"電話"`
+	Amount      string `tag:"訂位數量"`
 }
 
 var Search map[string]*Search_Time
@@ -60,7 +76,28 @@ func CampReply(c *gin.Context) {
 
 				case text_trimspace == "營地資訊":
 					Quick_Reply_CampRoundName(bot, event)
-
+				case strings.Contains(text_trimspace, "訂單資訊"):
+					ok, check := parase_Order_Info(text_trimspace)
+					if ok {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂位資訊",
+							&linebot.ConfirmTemplate{
+								Text: check,
+								Actions: []linebot.TemplateAction{
+									&linebot.PostbackAction{
+										Label: "是",
+										Data:  "action=order",
+										Text:  "是",
+									},
+									&linebot.PostbackAction{
+										Label: "是",
+										Data:  "action=order",
+										Text:  "否",
+									},
+								},
+							})).Do()
+					} else {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(check)).Do()
+					}
 				}
 			}
 		}
@@ -151,9 +188,9 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 	}
 	for _, s := range camp_searchs {
 		remain_num := fmt.Sprintf("剩餘 %d 帳", s.RemainMinAmount)
-
-		des := fmt.Sprintf("%s ~ %s\n%s", t.Start.Format("2006-01-02"), t.End.Format("2006-01-02"), remain_num)
-		fmt.Println(s.Product.ImageUri[0], s.Product.CampRoundName, des)
+		start := t.Start.Format("2006-01-02")
+		end := t.End.Format("2006-01-02")
+		des := fmt.Sprintf("%s ~ %s\n%s", start, end, remain_num)
 		tmp := linebot.CarouselColumn{
 			ThumbnailImageURL:    s.Product.ImageUri[0],
 			ImageBackgroundColor: "#000000",
@@ -164,7 +201,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 					Label:       "我要訂位",
 					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  "---\nName: \nPhone: \nBirthday: \n---",
+					FillInText:  fmt.Sprintf("訂單資訊 \n-----------\n區域:%s\n起始日期:%s\n結束日期:%s\n訂位者姓名:  \n電話:  \n訂位數量:  \n-----------\n", s.Product.CampRoundName, start, end),
 				},
 			},
 		}
@@ -308,11 +345,46 @@ func reply_date_limit(bot *linebot.Client, event *linebot.Event) {
 
 }
 
-type ParseData struct {
-	Action string
-	Item   int
-	Type   string
-	Num    int
+func parase_Order_Info(info string) (bool, string) {
+
+	var tmp Order_Info
+	split := strings.Split(info, "\n")
+	info_map := make(map[string]string)
+	for _, r := range split {
+		arr := strings.Split(r, ":")
+		if arr[0] != "訂位資訊" && arr[0] != "-----------" {
+			info_map[arr[0]] = arr[1]
+		}
+	}
+
+	t := reflect.TypeOf(tmp)
+	for i := 0; i < t.NumField(); i++ {
+		tag := t.Field(i).Tag.Get("tag")
+		if v, ok := info_map[tag]; ok {
+			if v == "" {
+				return false, fmt.Sprintf("%s不得為空,請重新訂位\n", tag)
+			} else {
+				switch tag {
+				case "區域":
+					tmp.Region = v
+				case "起始日期":
+					tmp.Start = v
+				case "結束日期":
+					tmp.End = v
+				case "訂位者姓名":
+					tmp.UserName = v
+				case "電話":
+					tmp.PhoneNumber = v
+				case "訂位數量":
+					tmp.Amount = v
+
+				}
+			}
+		}
+	}
+	order_info := fmt.Sprintf("確認訂位資訊 \n-----------\n區域:%s\n起始日期:%s\n結束日期:%s\n訂位者姓名:%s\n電話:%s\n訂位數量:%s\n-----------\n", tmp.Region, tmp.Start, tmp.End, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
+
+	return true, order_info
 }
 
 func Parase_postback(data string) (p_d ParseData) {
