@@ -35,6 +35,12 @@ func GetById(Id int64) (Product, error) {
 
 	return GetProduct, err
 }
+func GetIdByCampRoundName(name string) (Product, error) {
+	var GetProduct Product
+	err := db.DB.Where("camp_round_name=?", name).Find(&GetProduct).Error
+
+	return GetProduct, err
+}
 
 func DeleteById(Id int64) (Product, error) {
 	var product Product

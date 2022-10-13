@@ -7,9 +7,9 @@ import (
 )
 
 type Price struct {
-	PriceID int
-	WeekDay float32 `gorm:"not null;default:0"`
-	Holiday float32 `gorm:"not null;default:0"`
+	ProductId int
+	WeekDay   float32 `gorm:"not null;default:0"`
+	Holiday   float32 `gorm:"not null;default:0"`
 }
 
 func (price Price) Add() error {

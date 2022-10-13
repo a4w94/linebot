@@ -2,7 +2,9 @@ package line
 
 import (
 	"fmt"
+	"linebot/internal/model/order"
 	"linebot/internal/model/product"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -18,9 +20,9 @@ type Search_Time struct {
 }
 type ParseData struct {
 	Action string
-	Item   int
 	Type   string
-	Num    int
+	Status string
+	Data   string
 }
 
 type Order_Info struct {
@@ -77,8 +79,9 @@ func CampReply(c *gin.Context) {
 				case text_trimspace == "營地資訊":
 					Quick_Reply_CampRoundName(bot, event)
 				case strings.Contains(text_trimspace, "訂單資訊"):
-					ok, check := parase_Order_Info(text_trimspace)
+					ok, check, _ := parase_Order_Info(text_trimspace)
 					fmt.Println(ok, check)
+					data_yes := fmt.Sprintf("action=order&status=yes&data=%s", check)
 					if ok {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂位資訊",
 							&linebot.ConfirmTemplate{
@@ -86,13 +89,11 @@ func CampReply(c *gin.Context) {
 								Actions: []linebot.TemplateAction{
 									&linebot.PostbackAction{
 										Label: "是",
-										Data:  "action=order",
-										Text:  "是",
+										Data:  data_yes,
 									},
 									&linebot.PostbackAction{
 										Label: "否",
-										Data:  "action=order",
-										Text:  "否",
+										Data:  "action=order&staus=no",
 									},
 								},
 							})).Do()
@@ -135,6 +136,7 @@ func CampReply(c *gin.Context) {
 				}
 
 			case "order":
+				data.reply_Order_Confirm(bot, event)
 
 			}
 			fmt.Println("data", event.Postback.Data)
@@ -346,7 +348,7 @@ func reply_date_limit(bot *linebot.Client, event *linebot.Event) {
 
 }
 
-func parase_Order_Info(info string) (bool, string) {
+func parase_Order_Info(info string) (bool, string, Order_Info) {
 	fmt.Println("收到訂單資訊", info)
 	var tmp Order_Info
 	split := strings.Split(info, "\n")
@@ -365,7 +367,7 @@ func parase_Order_Info(info string) (bool, string) {
 		tag := t.Field(i).Tag.Get("tag")
 		if v, ok := info_map[tag]; ok {
 			if strings.TrimSpace(v) == "" {
-				return false, fmt.Sprintf("%s輸入有誤,請重新訂位", tag)
+				return false, fmt.Sprintf("%s輸入有誤,請重新訂位", tag), Order_Info{}
 			} else {
 				switch tag {
 				case "區域":
@@ -388,7 +390,7 @@ func parase_Order_Info(info string) (bool, string) {
 
 	order_info := fmt.Sprintf("確認訂位資訊 \n----------------------\n區域:%s\n起始日期:%s\n結束日期:%s\n-----------\n訂位者姓名:%s\n電話:%s\n訂位數量:%s", tmp.Region, tmp.Start, tmp.End, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
 
-	return true, order_info
+	return true, order_info, tmp
 }
 
 func Parase_postback(data string) (p_d ParseData) {
@@ -398,15 +400,56 @@ func Parase_postback(data string) (p_d ParseData) {
 		switch {
 		case strings.Contains(p, "action"):
 			p_d.Action = get_string_data(p)
-		case strings.Contains(p, "item"):
-			p_d.Item, _ = strconv.Atoi(p)
 		case strings.Contains(p, "type"):
 			p_d.Type = get_string_data(p)
-		case strings.Contains(p, "num"):
-			p_d.Type = get_string_data(p)
+		case strings.Contains(p, "status"):
+			p_d.Status = get_string_data(p)
+		case strings.Contains(p, "data"):
+			p_d.Data = get_string_data(p)
 		}
 	}
 	return p_d
+}
+
+func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Event) {
+	var reply_mes string
+
+	if p_d.Status == "no" {
+		reply_mes = "你的回復為 *否*，如有需要請重新訂位"
+	} else if p_d.Status == "yes" {
+		_, _, info := parase_Order_Info(p_d.Data)
+		amount, _ := strconv.Atoi(info.Amount)
+		product, err := product.GetIdByCampRoundName(info.Region)
+
+		if err != nil {
+			fmt.Println("get id failed")
+		}
+		start, _ := time.Parse("2006-01-02", info.Start)
+		end, _ := time.Parse("2006-01-02", info.End)
+
+		var tmp_order = order.Order{
+			OrderSN:      "EWT30014",
+			UserID:       event.Source.UserID,
+			UserName:     info.UserName,
+			PhoneNumber:  info.PhoneNumber,
+			ProductId:    int(product.ID),
+			Amount:       amount,
+			PaymentTotal: 1000,
+			Checkin:      start,
+			Checkout:     end,
+		}
+
+		err = tmp_order.Add()
+		if err != nil {
+			log.Println("新增訂單失敗", err)
+			reply_mes = "訂位失敗，請重新查詢"
+		} else {
+			reply_mes = "訂位成功，請點擊 *我的訂單* 查詢"
+		}
+	}
+
+	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply_mes)).Do()
+
 }
 
 func get_string_data(str string) string {
