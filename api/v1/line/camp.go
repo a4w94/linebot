@@ -358,8 +358,10 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	info_map := make(map[string]string)
 	for _, r := range split {
 		arr := strings.Split(r, ":")
-		if arr[1] != "" {
-			info_map[arr[0]] = arr[1]
+		if arr[0] != "訂單資訊" && arr[0] != "----------------------" {
+			if arr[1] != "" {
+				info_map[arr[0]] = arr[1]
+			}
 		}
 
 	}
