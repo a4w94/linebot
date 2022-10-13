@@ -82,6 +82,7 @@ func CampReply(c *gin.Context) {
 					ok, check, _ := parase_Order_Info(text_trimspace)
 					fmt.Println(ok, check)
 					data_yes := fmt.Sprintf("action=order&status=yes&data=%s", check)
+					fmt.Println("data_yes", data_yes)
 					if ok {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂位資訊",
 							&linebot.ConfirmTemplate{
@@ -90,10 +91,12 @@ func CampReply(c *gin.Context) {
 									&linebot.PostbackAction{
 										Label: "是",
 										Data:  data_yes,
+										Text:  "是",
 									},
 									&linebot.PostbackAction{
 										Label: "否",
 										Data:  "action=order&staus=no",
+										Text:  "否",
 									},
 								},
 							})).Do()
