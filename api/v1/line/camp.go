@@ -358,15 +358,16 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	info_map := make(map[string]string)
 
 	for _, r := range split {
-		arr := strings.Split(r, ":")
-		fmt.Println(arr)
-		if strings.TrimSpace(arr[1]) != "" {
-			info_map[strings.TrimSpace(arr[0])] = strings.TrimSpace(arr[1])
+		if r != "訂單資訊" && r != "----------------------" {
+			arr := strings.Split(r, ":")
+			fmt.Println(arr)
+			if strings.TrimSpace(arr[1]) != "" {
+				info_map[strings.TrimSpace(arr[0])] = strings.TrimSpace(arr[1])
+			}
+			// if arr[1] != "" {
+			// 	info_map[arr[0]] = arr[1]
+			// }
 		}
-		// if arr[1] != "" {
-		// 	info_map[arr[0]] = arr[1]
-		// }
-
 	}
 	fmt.Println(info_map)
 
