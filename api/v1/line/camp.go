@@ -390,6 +390,10 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 				case "電話":
 					tmp.PhoneNumber = v
 				case "訂位數量":
+					num, _ := strconv.Atoi(strings.TrimSpace(v))
+					if num == 0 {
+						return false, "訂位數量不得為零,請重新訂位", Order_Info{}
+					}
 					tmp.Amount = v
 
 				}
@@ -423,19 +427,22 @@ func Parase_postback(data string) (p_d ParseData) {
 func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Event) {
 	var reply_mes string
 
-	fmt.Println("ParseData", p_d)
 	if p_d.Status == "no" {
-		reply_mes = "你的回復為 *否*，如有需要請重新訂位"
+		reply_mes = "=如有需要請重新訂位，謝謝"
 	} else if p_d.Status == "yes" {
 		_, _, info := parase_Order_Info(p_d.Data)
+
+		fmt.Println("info", info)
 		amount, _ := strconv.Atoi(info.Amount)
 		product, err := product.GetIdByCampRoundName(info.Region)
-
+		fmt.Println("ID", product.ID)
 		if err != nil {
 			fmt.Println("get id failed")
 		}
 		start, _ := time.Parse("2006-01-02", info.Start)
 		end, _ := time.Parse("2006-01-02", info.End)
+
+		fmt.Println("range:", start, end)
 
 		var tmp_order = order.Order{
 			OrderSN:      "EWT30014",
