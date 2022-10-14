@@ -95,7 +95,7 @@ func CampReply(c *gin.Context) {
 									},
 									&linebot.PostbackAction{
 										Label: "否",
-										Data:  "action=order&staus=no",
+										Data:  "action=order&status=no",
 										Text:  "否",
 									},
 								},
@@ -423,6 +423,7 @@ func Parase_postback(data string) (p_d ParseData) {
 func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Event) {
 	var reply_mes string
 
+	fmt.Println("ParseData", p_d)
 	if p_d.Status == "no" {
 		reply_mes = "你的回復為 *否*，如有需要請重新訂位"
 	} else if p_d.Status == "yes" {
@@ -456,6 +457,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 			reply_mes = "訂位成功，請點擊 *我的訂單* 查詢"
 		}
 	}
+	fmt.Println("Relpy_message", reply_mes)
 
 	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply_mes)).Do()
 
