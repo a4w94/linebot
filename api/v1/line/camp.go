@@ -207,7 +207,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 					Label:       "我要訂位",
 					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域:%s\n起始日期:%s\n結束日期:%s\n----------------------\n訂位者姓名:  \n電話:  \n訂位數量:  ", s.Product.CampRoundName, start, end),
+					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域:%s\n起始日期:%s\n結束日期:%s\n----------------------\n訂位者姓名:\n電話:\n訂位數量:", s.Product.CampRoundName, start, end),
 				},
 			},
 		}
@@ -358,7 +358,7 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	info_map := make(map[string]string)
 
 	for _, r := range split {
-		if strings.TrimSpace(r) != "訂單資訊" && strings.TrimSpace(r) != "----------------------" {
+		if strings.Contains(r, ":") {
 			arr := strings.Split(r, ":")
 			fmt.Println(arr)
 			if strings.TrimSpace(arr[1]) != "" {
