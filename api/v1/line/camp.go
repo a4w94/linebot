@@ -26,12 +26,13 @@ type ParseData struct {
 }
 
 type Order_Info struct {
-	Region      string `tag:"區域"`
-	Start       string `tag:"起始日期"`
-	End         string `tag:"結束日期"`
-	UserName    string `tag:"訂位者姓名"`
-	PhoneNumber string `tag:"電話"`
-	Amount      string `tag:"訂位數量"`
+	Region       string `tag:"區域"`
+	Start        string `tag:"起始日期"`
+	End          string `tag:"結束日期"`
+	PaymentTotal string `tag:"總金額"`
+	UserName     string `tag:"訂位者姓名"`
+	PhoneNumber  string `tag:"電話"`
+	Amount       string `tag:"訂位數量"`
 }
 
 var Search map[string]*Search_Time
@@ -188,15 +189,16 @@ func Is_Name_Exist(name string) (product.Product, bool) {
 func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time) {
 	var c_t []*linebot.CarouselColumn
 	camp_searchs := SearchRemainCamp(t)
-	fmt.Println("input search time ", t)
-	for i, r := range camp_searchs {
-		fmt.Println(i, ":", r.Stocks)
-	}
+	// fmt.Println("input search time ", t)
+	// for i, r := range camp_searchs {
+	// 	fmt.Println(i, ":", r.Stocks)
+	// }
 	for _, s := range camp_searchs {
-		remain_num := fmt.Sprintf("剩餘 %d 帳", s.RemainMinAmount)
+		total_num := fmt.Sprintf("總共 %d %s", s.Product.TotlaNum, s.Product.Uint)
+		remain_num := fmt.Sprintf("剩餘 %d %s", s.RemainMinAmount, s.Product.Uint)
 		start := t.Start.Format("2006-01-02")
 		end := t.End.Format("2006-01-02")
-		des := fmt.Sprintf("%s ~ %s\n%s", start, end, remain_num)
+		des := fmt.Sprintf("%s ~ %s\n\n每區 NT$%d\n%s\n%s\n", start, end, s.PaymentTotal, total_num, remain_num)
 		tmp := linebot.CarouselColumn{
 			ThumbnailImageURL:    s.Product.ImageUri[0],
 			ImageBackgroundColor: "#000000",
@@ -207,7 +209,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 					Label:       "我要訂位",
 					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域:%s\n起始日期:%s\n結束日期:%s\n----------------------\n訂位者姓名:\n電話:\n訂位數量:", s.Product.CampRoundName, start, end),
+					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: \n電話: \n訂位數量: ", s.Product.CampRoundName, start, end, s.PaymentTotal),
 				},
 			},
 		}
@@ -360,7 +362,6 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	for _, r := range split {
 		if strings.Contains(r, ":") {
 			arr := strings.Split(r, ":")
-			fmt.Println(arr)
 			if strings.TrimSpace(arr[1]) != "" {
 				info_map[strings.TrimSpace(arr[0])] = strings.TrimSpace(arr[1])
 			}
@@ -369,7 +370,6 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 			// }
 		}
 	}
-	fmt.Println(info_map)
 
 	t := reflect.TypeOf(tmp)
 	for i := 0; i < t.NumField(); i++ {
@@ -385,6 +385,8 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 					tmp.Start = v
 				case "結束日期":
 					tmp.End = v
+				case "總金額":
+					tmp.PaymentTotal = v
 				case "訂位者姓名":
 					tmp.UserName = v
 				case "電話":
@@ -401,7 +403,7 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 		}
 	}
 
-	order_info := fmt.Sprintf("確認訂位資訊 \n----------------------\n區域:%s\n起始日期:%s\n結束日期:%s\n-----------\n訂位者姓名:%s\n電話:%s\n訂位數量:%s", tmp.Region, tmp.Start, tmp.End, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
+	order_info := fmt.Sprintf("確認訂位資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s", tmp.Region, tmp.Start, tmp.End, tmp.PaymentTotal, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
 
 	return true, order_info, tmp
 }
@@ -432,36 +434,37 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 	} else if p_d.Status == "yes" {
 		_, _, info := parase_Order_Info(p_d.Data)
 
-		fmt.Println("info", info)
 		amount, _ := strconv.Atoi(info.Amount)
 		product, err := product.GetIdByCampRoundName(info.Region)
-		fmt.Println("ID", product.ID)
+		paymenttotal, _ := strconv.Atoi(info.PaymentTotal)
 		if err != nil {
 			fmt.Println("get id failed")
 		}
 		start, _ := time.Parse("2006-01-02", info.Start)
 		end, _ := time.Parse("2006-01-02", info.End)
 
-		fmt.Println("range:", start, end)
-
 		var tmp_order = order.Order{
-			OrderSN:      "EWT30014",
+			OrderSN:      porducSN(),
 			UserID:       event.Source.UserID,
 			UserName:     info.UserName,
 			PhoneNumber:  info.PhoneNumber,
 			ProductId:    int(product.ID),
 			Amount:       amount,
-			PaymentTotal: 1000,
+			PaymentTotal: paymenttotal,
 			Checkin:      start,
 			Checkout:     end,
 		}
 
 		err = tmp_order.Add()
+		order, _ := order.GetAllOrder()
+		fmt.Println("Order", order)
 		if err != nil {
 			log.Println("新增訂單失敗", err)
 			reply_mes = "訂位失敗，請重新查詢"
 		} else {
-			reply_mes = "訂位成功，請點擊 *我的訂單* 查詢"
+			t, _ := time.Parse("2006-01-02", time.Now().AddDate(0, 0, 3).Format("2006-01-02"))
+			remit := fmt.Sprintf("請於%s前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n匯款帳號: 0342523515\n匯款金額: %s\n", t, info.PaymentTotal)
+			reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
 		}
 	}
 	fmt.Println("Relpy_message", reply_mes)
@@ -474,4 +477,9 @@ func get_string_data(str string) string {
 	i := strings.Index(str, "=")
 	tmp := str[i+1:]
 	return tmp
+}
+
+func porducSN() (SN string) {
+	SN = "XXWWW3333"
+	return SN
 }

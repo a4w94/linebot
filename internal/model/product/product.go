@@ -10,8 +10,11 @@ import (
 type Product struct {
 	gorm.Model
 	CampRoundName string `gorm:"not null"`
-	Price         Price  `gorm:"embedded"`
+	Price_Weekday int
+	Price_Holiday int
 	Size          string
+	Uint          string
+	TotlaNum      int
 	ImageUri      pq.StringArray `gorm:"type:text[]"`
 	Description   string
 }

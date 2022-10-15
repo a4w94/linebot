@@ -3,6 +3,7 @@ package stock
 import (
 	"errors"
 	"linebot/internal/config/db"
+	"linebot/internal/model/product"
 	"log"
 	"time"
 
@@ -14,12 +15,12 @@ type Stock struct {
 	gorm.Model
 	Date      time.Time
 	ProductId uint
-	TotlaNum  int
 	RemainNum int
 }
 
 func (stock Stock) Add() error {
-	if stock.RemainNum > stock.TotlaNum {
+	product, _ := product.GetById(int64(stock.ProductId))
+	if stock.RemainNum > product.TotlaNum {
 
 		err := errors.New("remain number can't bigger than total num")
 		log.Fatal(err)

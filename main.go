@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"linebot/api/v1/line"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
 	"linebot/internal/model/product"
@@ -30,12 +29,20 @@ func TestData() {
 	var p1 = product.Product{
 		CampRoundName: "A區",
 		Size:          "5m*5m",
+		Price_Weekday: 1000,
+		Price_Holiday: 1200,
+		Uint:          "帳",
+		TotlaNum:      5,
 		ImageUri:      []string{"https://i.imgur.com/XXwY96T.jpeg", "https://i.imgur.com/3dthZKo.jpeg"},
 	}
 
 	var p2 = product.Product{
-		CampRoundName: "B區",
+		CampRoundName: "B區-3帳包區",
 		Size:          "5m*5m",
+		Price_Weekday: 1000,
+		Price_Holiday: 1200,
+		Uint:          "區",
+		TotlaNum:      1,
 		ImageUri:      []string{"https://i.imgur.com/XXwY96T.jpeg", "https://i.imgur.com/3dthZKo.jpeg"},
 	}
 	p1.Add()
@@ -52,15 +59,13 @@ func TestData() {
 		var tmp = stock.Stock{
 			Date:      t,
 			ProductId: 1,
-			TotlaNum:  5,
 			RemainNum: r_n,
 		}
 
 		var tmp1 = stock.Stock{
 			Date:      t,
 			ProductId: 2,
-			TotlaNum:  5,
-			RemainNum: r_n,
+			RemainNum: 1,
 		}
 		tmp.Add()
 		tmp1.Add()
@@ -70,22 +75,23 @@ func TestData() {
 
 func GetData() {
 
-	stocks, _ := stock.GetAll()
-	for _, s := range stocks {
-		fmt.Println(s)
-	}
-	ps, _ := product.GetAll()
-	for _, p := range ps {
-		fmt.Println(p, p.ID)
-	}
-	var t line.Search_Time
-	t.Start, _ = time.Parse("2006-01-02", "2022-09-25")
-	t.End, _ = time.Parse("2006-01-02", "2022-09-30")
-	r := line.SearchRemainCamp(t)
-	for _, t := range r {
-		fmt.Println(t.Product)
-		fmt.Println(t.Stocks)
-		fmt.Println(t.RemainMinAmount)
-		fmt.Println()
-	}
+	// stocks, _ := stock.GetAll()
+	// for _, s := range stocks {
+	// 	fmt.Println(s)
+	// }
+	// ps, _ := product.GetAll()
+	// for _, p := range ps {
+	// 	fmt.Println(p, p.ID)
+	// }
+	// var t line.Search_Time
+	// t.Start, _ = time.Parse("2006-01-02", "2022-09-25")
+	// t.End, _ = time.Parse("2006-01-02", "2022-09-30")
+	// r := line.SearchRemainCamp(t)
+	// for _, t := range r {
+	// 	fmt.Println(t.Product)
+	// 	fmt.Println(t.Stocks)
+	// 	fmt.Println(t.RemainMinAmount)
+	// 	fmt.Println()
+	// }
+
 }

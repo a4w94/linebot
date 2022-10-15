@@ -7,6 +7,13 @@ import (
 	"log"
 )
 
+type RemainCamp struct {
+	Product         product.Product
+	Stocks          []stock.Stock
+	RemainMinAmount int
+	PaymentTotal    int
+}
+
 func SearchRemainCamp(t Search_Time) (r_c []RemainCamp) {
 	var err error
 	products, err := product.GetAll()
@@ -22,6 +29,7 @@ func SearchRemainCamp(t Search_Time) (r_c []RemainCamp) {
 		if err != nil {
 			log.Println("GetStocks Failed", err)
 		}
+		tmp.PaymentTotal = t.camp_PaymentTotal(p)
 		var remain []int
 		for _, s := range tmp.Stocks {
 			remain = append(remain, s.RemainNum)
@@ -29,14 +37,25 @@ func SearchRemainCamp(t Search_Time) (r_c []RemainCamp) {
 		//找到最小剩餘數
 		tmp.RemainMinAmount, _ = tool.Find_Min_and_Max(remain)
 
+		//加總總金額
+
 		r_c = append(r_c, tmp)
 	}
 
 	return r_c
 }
 
-type RemainCamp struct {
-	Product         product.Product
-	Stocks          []stock.Stock
-	RemainMinAmount int
+func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
+
+	for {
+		if t.Start.Equal(t.End) {
+			paymentTotal += p.Price_Weekday
+			break
+		}
+
+		paymentTotal += p.Price_Weekday
+		t.Start = t.Start.AddDate(0, 0, 1)
+
+	}
+	return paymentTotal
 }

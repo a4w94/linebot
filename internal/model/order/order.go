@@ -15,7 +15,7 @@ type Order struct {
 	PhoneNumber  string `gorm:"comment:登記者電話"`
 	ProductId    int
 	Amount       int
-	PaymentTotal float32
+	PaymentTotal int
 	Checkin      time.Time
 	Checkout     time.Time
 }
