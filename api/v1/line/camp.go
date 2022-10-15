@@ -65,11 +65,6 @@ func CampReply(c *gin.Context) {
 			case *linebot.TextMessage:
 				text_trimspace := strings.TrimSpace(message.Text)
 
-				//營區資訊查詢區域
-				if product, ok := Is_Name_Exist(text_trimspace); ok {
-					Img_Carousel_CampRound_Info(bot, event, product)
-				}
-
 				switch {
 				case text_trimspace == "我要訂位":
 					reply_date_limit(bot, event)
@@ -78,7 +73,8 @@ func CampReply(c *gin.Context) {
 					bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069)).Do()
 
 				case text_trimspace == "營地資訊":
-					Quick_Reply_CampRoundName(bot, event)
+
+					Img_Carousel_CampRound_Info(bot, event)
 				case strings.Contains(text_trimspace, "訂單資訊"):
 					ok, check, _ := parase_Order_Info(text_trimspace)
 					fmt.Println(ok, check)
@@ -248,21 +244,26 @@ func Add_Carousel_Imgae() (c_i []*linebot.ImageCarouselColumn) {
 	return c_i
 }
 
-func Img_Carousel_CampRound_Info(bot *linebot.Client, event *linebot.Event, product product.Product) {
-	fmt.Println("Img_Carousel_CampRound_Info", product)
+func Img_Carousel_CampRound_Info(bot *linebot.Client, event *linebot.Event) {
+	fmt.Println("Img_Carousel_CampRound_Info")
+	products, err := product.GetAll()
+	if err != nil {
+		log.Println("Img_Carousel_CampRound_Info Get All Products Failed")
+	}
 	var c_t []*linebot.ImageCarouselColumn
-	for _, uri := range product.ImageUri {
+	for _, r := range products {
+
 		c1 := linebot.ImageCarouselColumn{
-			ImageURL: uri,
+			ImageURL: r.ImageUri[0],
 			Action: &linebot.PostbackAction{
-				Label: product.CampRoundName,
+				Label: r.CampRoundName,
 				Data:  "action=click&itemid=0",
 			},
 		}
 
 		c_t = append(c_t, &c1)
-	}
 
+	}
 	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("img carousel",
 		&linebot.ImageCarouselTemplate{
 			Columns: c_t,
@@ -430,7 +431,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 	var reply_mes string
 
 	if p_d.Status == "no" {
-		reply_mes = "=如有需要請重新訂位，謝謝"
+		reply_mes = "如有需要請重新訂位，謝謝"
 	} else if p_d.Status == "yes" {
 		_, _, info := parase_Order_Info(p_d.Data)
 
@@ -462,7 +463,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 			log.Println("新增訂單失敗", err)
 			reply_mes = "訂位失敗，請重新查詢"
 		} else {
-			t, _ := time.Parse("2006-01-02", time.Now().AddDate(0, 0, 3).Format("2006-01-02"))
+			t := time.Now().AddDate(0, 0, 3).Format("2006-01-02")
 			remit := fmt.Sprintf("請於%s前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n匯款帳號: 0342523515\n匯款金額: %s\n", t, info.PaymentTotal)
 			reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
 		}
