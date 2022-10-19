@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"linebot/api/v1/line"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
 	"linebot/internal/model/product"
@@ -17,7 +18,7 @@ func main() {
 	//db.InitDbContext()
 
 	TestData()
-	//GetData()
+	GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)
@@ -75,10 +76,16 @@ func TestData() {
 
 func GetData() {
 
-	// stocks, _ := stock.GetAll()
-	// for _, s := range stocks {
-	// 	fmt.Println(s)
-	// }
+	stocks, _ := stock.GetAll()
+	for _, s := range stocks {
+		fmt.Println(s)
+	}
+
+	var t line.Search_Time
+	t.Start, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
+	t.End, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
+	k := t.SearchRemainCamp_ALL()
+	fmt.Println(k)
 	// ps, _ := product.GetAll()
 	// for _, p := range ps {
 	// 	fmt.Println(p, p.ID)

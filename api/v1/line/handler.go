@@ -1,6 +1,7 @@
 package line
 
 import (
+	"fmt"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/pkg/tool"
@@ -21,6 +22,7 @@ func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
 		log.Println("Get Products Failed", err)
 	}
 
+	fmt.Println("開始搜尋全部剩餘營位")
 	for _, p := range products {
 		tmp := t.SearchRemainCamp(p)
 
@@ -33,15 +35,17 @@ func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
 func (t Search_Time) SearchRemainCamp(p product.Product) (r_c RemainCamp) {
 
 	var tmp RemainCamp
-
+	fmt.Println("product", p)
 	tmp.Product = p
 	tmp.Stocks, err = stock.GetStocks_By_ID_and_DateRange(tmp.Product.ID, t.Start, t.End)
 	if err != nil {
 		log.Println("GetStocks Failed", err)
 	}
+	fmt.Println("stocks", tmp.Stocks)
 	tmp.PaymentTotal = t.camp_PaymentTotal(p)
 	var remain []int
 	for _, s := range tmp.Stocks {
+		fmt.Println("stock", s)
 		remain = append(remain, s.RemainNum)
 	}
 	//找到最小剩餘數

@@ -185,16 +185,16 @@ func Is_Name_Exist(name string) (product.Product, bool) {
 func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time) {
 	var c_t []*linebot.CarouselColumn
 	camp_searchs := t.SearchRemainCamp_ALL()
-	// fmt.Println("input search time ", t)
-	// for i, r := range camp_searchs {
-	// 	fmt.Println(i, ":", r.Stocks)
-	// }
+	fmt.Println("input search time ", t)
+	for i, r := range camp_searchs {
+		fmt.Println(i, ":", r.Stocks)
+	}
 	for _, s := range camp_searchs {
 		total_num := fmt.Sprintf("總共 %d %s", s.Product.TotlaNum, s.Product.Uint)
 		remain_num := fmt.Sprintf("剩餘 %d %s", s.RemainMinAmount, s.Product.Uint)
 		start := t.Start.Format("2006-01-02")
 		end := t.End.Format("2006-01-02")
-		des := fmt.Sprintf("%s ~ %s\n\n每區 NT$%d\n%s\n%s\n", start, end, s.PaymentTotal, total_num, remain_num)
+		des := fmt.Sprintf("%s ~ %s\n\n每%s NT$%d\n%s\n%s\n", start, end, s.Product.Uint, s.PaymentTotal, total_num, remain_num)
 		tmp := linebot.CarouselColumn{
 			ThumbnailImageURL:    s.Product.ImageUri[0],
 			ImageBackgroundColor: "#000000",

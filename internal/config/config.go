@@ -36,7 +36,7 @@ func init() {
 
 func LoadServer() {
 	HttpPort = os.Getenv("PORT")
-	//HttpPort = "5000"
+	HttpPort = "5000"
 	if HttpPort == "" {
 		log.Fatal("$PORT must be set")
 	} else {
