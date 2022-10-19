@@ -186,9 +186,9 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 	var c_t []*linebot.CarouselColumn
 	camp_searchs := t.SearchRemainCamp_ALL()
 	fmt.Println("input search time ", t)
-	for i, r := range camp_searchs {
-		fmt.Println(i, ":", r.Stocks)
-	}
+	// for i, r := range camp_searchs {
+	// 	fmt.Println(i, ":", r.Stocks)
+	// }
 	for _, s := range camp_searchs {
 		total_num := fmt.Sprintf("總共 %d %s", s.Product.TotlaNum, s.Product.Uint)
 		remain_num := fmt.Sprintf("剩餘 %d %s", s.RemainMinAmount, s.Product.Uint)

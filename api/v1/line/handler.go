@@ -32,16 +32,14 @@ func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
 	return r_c
 }
 
-func (t Search_Time) SearchRemainCamp(p product.Product) (r_c RemainCamp) {
+func (t Search_Time) SearchRemainCamp(p product.Product) (tmp RemainCamp) {
 
-	var tmp RemainCamp
-	fmt.Println("product", p)
 	tmp.Product = p
 	tmp.Stocks, err = stock.GetStocks_By_ID_and_DateRange(tmp.Product.ID, t.Start, t.End)
 	if err != nil {
 		log.Println("GetStocks Failed", err)
 	}
-	fmt.Println("stocks", tmp.Stocks)
+
 	tmp.PaymentTotal = t.camp_PaymentTotal(p)
 	var remain []int
 	for _, s := range tmp.Stocks {
@@ -53,7 +51,7 @@ func (t Search_Time) SearchRemainCamp(p product.Product) (r_c RemainCamp) {
 
 	//加總總金額
 
-	return r_c
+	return tmp
 }
 
 func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
