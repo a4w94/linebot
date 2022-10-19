@@ -184,7 +184,7 @@ func Is_Name_Exist(name string) (product.Product, bool) {
 //搜尋剩餘營位
 func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time) {
 	var c_t []*linebot.CarouselColumn
-	camp_searchs := SearchRemainCamp(t)
+	camp_searchs := t.SearchRemainCamp_ALL()
 	// fmt.Println("input search time ", t)
 	// for i, r := range camp_searchs {
 	// 	fmt.Println(i, ":", r.Stocks)
@@ -205,7 +205,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 					Label:       "我要訂位",
 					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: \n電話: \n訂位數量: ", s.Product.CampRoundName, start, end, s.PaymentTotal),
+					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: \n電話: 09\n訂位數量: ", s.Product.CampRoundName, start, end, s.PaymentTotal),
 				},
 			},
 		}
@@ -371,6 +371,9 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 			// }
 		}
 	}
+	var s_t Search_Time
+	s_t.Start, _ = time.Parse("2006-01-02", tmp.Start)
+	s_t.End, _ = time.Parse("2006-01-02", tmp.End)
 
 	t := reflect.TypeOf(tmp)
 	for i := 0; i < t.NumField(); i++ {
@@ -387,15 +390,26 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 				case "結束日期":
 					tmp.End = v
 				case "總金額":
-					tmp.PaymentTotal = v
+
+					p, _ := product.GetIdByCampRoundName(tmp.Region)
+					pay := s_t.camp_PaymentTotal(p)
+					tmp.PaymentTotal = strconv.Itoa(pay)
 				case "訂位者姓名":
 					tmp.UserName = v
 				case "電話":
+					if len(tmp.PhoneNumber) != 10 {
+						return false, "電話輸入有誤，請重新訂位", Order_Info{}
+					}
 					tmp.PhoneNumber = v
 				case "訂位數量":
 					num, _ := strconv.Atoi(strings.TrimSpace(v))
 					if num == 0 {
 						return false, "訂位數量不得為零,請重新訂位", Order_Info{}
+					}
+
+					input_order_num, _ := strconv.Atoi(v)
+					if s_t.check_Remain_Num_Enough(input_order_num, tmp.Region) {
+						return false, "剩餘數量不足,請重新訂位", Order_Info{}
 					}
 					tmp.Amount = v
 
@@ -464,7 +478,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 			reply_mes = "訂位失敗，請重新查詢"
 		} else {
 			t := time.Now().AddDate(0, 0, 3).Format("2006-01-02")
-			remit := fmt.Sprintf("請於%s前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n匯款帳號: 0342523515\n匯款金額: %s\n", t, info.PaymentTotal)
+			remit := fmt.Sprintf("請於%s前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", t, info.PaymentTotal)
 			reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
 		}
 	}

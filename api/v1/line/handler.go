@@ -14,7 +14,7 @@ type RemainCamp struct {
 	PaymentTotal    int
 }
 
-func SearchRemainCamp(t Search_Time) (r_c []RemainCamp) {
+func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
 	var err error
 	products, err := product.GetAll()
 	if err != nil {
@@ -22,25 +22,32 @@ func SearchRemainCamp(t Search_Time) (r_c []RemainCamp) {
 	}
 
 	for _, p := range products {
-		var tmp RemainCamp
-
-		tmp.Product = p
-		tmp.Stocks, err = stock.GetStocks_By_ID_and_DateRange(tmp.Product.ID, t.Start, t.End)
-		if err != nil {
-			log.Println("GetStocks Failed", err)
-		}
-		tmp.PaymentTotal = t.camp_PaymentTotal(p)
-		var remain []int
-		for _, s := range tmp.Stocks {
-			remain = append(remain, s.RemainNum)
-		}
-		//找到最小剩餘數
-		tmp.RemainMinAmount, _ = tool.Find_Min_and_Max(remain)
-
-		//加總總金額
+		tmp := t.SearchRemainCamp(p)
 
 		r_c = append(r_c, tmp)
 	}
+
+	return r_c
+}
+
+func (t Search_Time) SearchRemainCamp(p product.Product) (r_c RemainCamp) {
+
+	var tmp RemainCamp
+
+	tmp.Product = p
+	tmp.Stocks, err = stock.GetStocks_By_ID_and_DateRange(tmp.Product.ID, t.Start, t.End)
+	if err != nil {
+		log.Println("GetStocks Failed", err)
+	}
+	tmp.PaymentTotal = t.camp_PaymentTotal(p)
+	var remain []int
+	for _, s := range tmp.Stocks {
+		remain = append(remain, s.RemainNum)
+	}
+	//找到最小剩餘數
+	tmp.RemainMinAmount, _ = tool.Find_Min_and_Max(remain)
+
+	//加總總金額
 
 	return r_c
 }
@@ -58,4 +65,11 @@ func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
 
 	}
 	return paymentTotal
+}
+
+func (t Search_Time) check_Remain_Num_Enough(input_order_num int, region_name string) bool {
+	p, _ := product.GetIdByCampRoundName(region_name)
+	remain := t.SearchRemainCamp(p).RemainMinAmount
+	return input_order_num <= remain
+
 }
