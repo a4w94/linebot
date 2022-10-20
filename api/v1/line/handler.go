@@ -33,19 +33,23 @@ func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
 }
 
 func (t Search_Time) SearchRemainCamp(p product.Product) (tmp RemainCamp) {
-
+	fmt.Println("input time:", t)
+	fmt.Println("input product:", p)
 	tmp.Product = p
 	tmp.Stocks, err = stock.GetStocks_By_ID_and_DateRange(tmp.Product.ID, t.Start, t.End)
 	if err != nil {
 		log.Println("GetStocks Failed", err)
 	}
+	fmt.Println("stocks", tmp.Stocks)
 
 	tmp.PaymentTotal = t.camp_PaymentTotal(p)
+	fmt.Println("pay:", tmp.PaymentTotal)
 	var remain []int
 	for _, s := range tmp.Stocks {
 		fmt.Println("stock", s)
 		remain = append(remain, s.RemainNum)
 	}
+	fmt.Println("remain arr", remain)
 	//找到最小剩餘數
 	tmp.RemainMinAmount, _ = tool.Find_Min_and_Max(remain)
 
