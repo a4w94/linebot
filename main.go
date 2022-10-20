@@ -84,8 +84,7 @@ func GetData() {
 	var t line.Search_Time
 	t.Start, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
 	t.End, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
-	k := t.SearchRemainCamp_ALL()
-	fmt.Println(k)
+	fmt.Println(t.Check_Remain_Num_Enough(3, "A區"))
 	// ps, _ := product.GetAll()
 	// for _, p := range ps {
 	// 	fmt.Println(p, p.ID)

@@ -408,11 +408,11 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 					}
 
 					input_order_num, _ := strconv.Atoi(v)
-					if s_t.check_Remain_Num_Enough(input_order_num, tmp.Region) {
+					if !s_t.Check_Remain_Num_Enough(input_order_num, tmp.Region) {
 						return false, "剩餘數量不足,請重新訂位", Order_Info{}
+					} else {
+						tmp.Amount = v
 					}
-					tmp.Amount = v
-
 				}
 			}
 		}
