@@ -397,7 +397,7 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 				case "訂位者姓名":
 					tmp.UserName = v
 				case "電話":
-					if len(tmp.PhoneNumber) != 10 {
+					if len(v) != 10 {
 						return false, "電話輸入有誤，請重新訂位", Order_Info{}
 					}
 					tmp.PhoneNumber = v
