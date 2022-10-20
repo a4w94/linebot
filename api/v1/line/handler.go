@@ -70,9 +70,14 @@ func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
 }
 
 func (t Search_Time) Check_Remain_Num_Enough(input_order_num int, region_name string) bool {
-
-	p, _ := product.GetIdByCampRoundName(region_name)
+	fmt.Println("check remain", input_order_num, region_name)
+	p, err := product.GetIdByCampRoundName(region_name)
+	if err != nil {
+		log.Fatal("check remain get product failed")
+	}
+	fmt.Println("product", p)
 	remain := t.SearchRemainCamp(p).RemainMinAmount
+	fmt.Println("remain", remain)
 	return input_order_num <= remain
 
 }

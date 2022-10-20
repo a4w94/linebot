@@ -407,8 +407,7 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 						return false, "訂位數量不得為零,請重新訂位", Order_Info{}
 					}
 
-					input_order_num, _ := strconv.Atoi(v)
-					if !s_t.Check_Remain_Num_Enough(input_order_num, tmp.Region) {
+					if !s_t.Check_Remain_Num_Enough(num, tmp.Region) {
 						return false, "剩餘數量不足,請重新訂位", Order_Info{}
 					} else {
 						tmp.Amount = v
@@ -419,7 +418,7 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	}
 
 	order_info := fmt.Sprintf("確認訂位資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s", tmp.Region, tmp.Start, tmp.End, tmp.PaymentTotal, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
-
+	fmt.Println("order info", order_info)
 	return true, order_info, tmp
 }
 
