@@ -372,8 +372,6 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 		}
 	}
 	var s_t Search_Time
-	s_t.Start, _ = time.Parse("2006-01-02", tmp.Start)
-	s_t.End, _ = time.Parse("2006-01-02", tmp.End)
 
 	t := reflect.TypeOf(tmp)
 	for i := 0; i < t.NumField(); i++ {
@@ -386,9 +384,19 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 				case "區域":
 					tmp.Region = v
 				case "起始日期":
+					s_t.Start, err = time.Parse("2006-01-02", v)
+					if err != nil {
+						return false, fmt.Sprintf("%s輸入有誤,請重新訂位", tag), Order_Info{}
+					}
 					tmp.Start = v
+
 				case "結束日期":
+					s_t.End, err = time.Parse("2006-01-02", v)
+					if err != nil {
+						return false, fmt.Sprintf("%s輸入有誤,請重新訂位", tag), Order_Info{}
+					}
 					tmp.End = v
+
 				case "總金額":
 
 					p, _ := product.GetIdByCampRoundName(tmp.Region)
