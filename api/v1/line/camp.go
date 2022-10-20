@@ -406,7 +406,7 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 					if num == 0 {
 						return false, "訂位數量不得為零,請重新訂位", Order_Info{}
 					}
-
+					fmt.Println("s_t", s_t)
 					if !s_t.Check_Remain_Num_Enough(num, tmp.Region) {
 						return false, "剩餘數量不足,請重新訂位", Order_Info{}
 					} else {

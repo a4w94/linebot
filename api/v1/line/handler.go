@@ -16,6 +16,7 @@ type RemainCamp struct {
 }
 
 func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
+	fmt.Println("all time:", t)
 	var err error
 	products, err := product.GetAll()
 	if err != nil {
@@ -33,7 +34,7 @@ func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
 }
 
 func (t Search_Time) SearchRemainCamp(p product.Product) (tmp RemainCamp) {
-	fmt.Println("input time:", t)
+	fmt.Println("search camp input time:", t)
 	fmt.Println("input product:", p)
 	tmp.Product = p
 	tmp.Stocks, err = stock.GetStocks_By_ID_and_DateRange(tmp.Product.ID, t.Start, t.End)
@@ -75,6 +76,7 @@ func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
 
 func (t Search_Time) Check_Remain_Num_Enough(input_order_num int, region_name string) bool {
 	fmt.Println("check remain", input_order_num, region_name)
+	fmt.Println("input time", t)
 	p, err := product.GetIdByCampRoundName(region_name)
 	if err != nil {
 		log.Fatal("check remain get product failed")

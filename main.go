@@ -53,7 +53,7 @@ func TestData() {
 
 	t, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 5; i++ {
 		t = t.AddDate(0, 0, 1)
 		var r_n = 5
 
@@ -76,18 +76,16 @@ func TestData() {
 
 func GetData() {
 
-	stocks, _ := stock.GetAll()
-	for _, s := range stocks {
-		fmt.Println(s)
-	}
+	// stocks, _ := stock.GetAll()
+	// for _, s := range stocks {
+	// 	fmt.Println(s)
+	// }
 
 	var t line.Search_Time
 	t.Start, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
 	t.End, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
 	fmt.Println(t.Check_Remain_Num_Enough(3, "A區"))
-	p, _ := product.GetIdByCampRoundName("A區")
-	x := t.SearchRemainCamp(p)
-	fmt.Println(x)
+	t.SearchRemainCamp_ALL()
 	// ps, _ := product.GetAll()
 	// for _, p := range ps {
 	// 	fmt.Println(p, p.ID)
