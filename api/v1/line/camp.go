@@ -459,35 +459,45 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 		amount, _ := strconv.Atoi(info.Amount)
 		product, err := product.GetIdByCampRoundName(info.Region)
 		paymenttotal, _ := strconv.Atoi(info.PaymentTotal)
+		var order_sn string
 		if err != nil {
 			fmt.Println("get id failed")
 		}
 		start, _ := time.Parse("2006-01-02", info.Start)
 		end, _ := time.Parse("2006-01-02", info.End)
 
-		var tmp_order = order.Order{
-			OrderSN:      porducSN(),
-			UserID:       event.Source.UserID,
-			UserName:     info.UserName,
-			PhoneNumber:  info.PhoneNumber,
-			ProductId:    int(product.ID),
-			Amount:       amount,
-			PaymentTotal: paymenttotal,
-			Checkin:      start,
-			Checkout:     end,
-		}
+		var check_insert_success bool
+		var index int
+		for !check_insert_success {
+			order_sn = order.GenerateOrderSN(index)
+			var tmp_order = order.Order{
+				OrderSN:      order_sn,
+				UserID:       event.Source.UserID,
+				UserName:     info.UserName,
+				PhoneNumber:  info.PhoneNumber,
+				ProductId:    int(product.ID),
+				Amount:       amount,
+				PaymentTotal: paymenttotal,
+				Checkin:      start,
+				Checkout:     end,
+			}
 
-		err = tmp_order.Add()
-		order, _ := order.GetAllOrder()
-		fmt.Println("Order", order)
-		if err != nil {
-			log.Println("新增訂單失敗", err)
-			reply_mes = "訂位失敗，請重新查詢"
-		} else {
-			t := time.Now().AddDate(0, 0, 3).Format("2006-01-02")
-			remit := fmt.Sprintf("請於%s前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", t, info.PaymentTotal)
-			reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
+			err = tmp_order.Add()
+
+			order, _ := order.GetAllOrder()
+			fmt.Println("Order", order)
+			if err != nil {
+				log.Println("新增訂單失敗", err)
+				index++
+				reply_mes = "訂位失敗，請重新查詢"
+			} else {
+				check_insert_success = true
+			}
 		}
+		t := time.Now().AddDate(0, 0, 3).Format("2006-01-02")
+		remit := fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", t, info.PaymentTotal)
+		reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", order_sn, info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
+
 	}
 	fmt.Println("Relpy_message", reply_mes)
 
@@ -499,9 +509,4 @@ func get_string_data(str string) string {
 	i := strings.Index(str, "=")
 	tmp := str[i+1:]
 	return tmp
-}
-
-func porducSN() (SN string) {
-	SN = "XXWWW3333"
-	return SN
 }

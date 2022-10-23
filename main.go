@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"linebot/api/v1/line"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
+	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/internal/route"
@@ -72,6 +72,40 @@ func TestData() {
 		tmp1.Add()
 	}
 
+	// o1 := order.Order{
+	// 	OrderSN:      order.GenerateOrderSN(0),
+	// 	UserID:       "jjwwt",
+	// 	ProductId:    1,
+	// 	Amount:       3,
+	// 	PaymentTotal: 1000,
+	// }
+	// err := o1.Add()
+	// if err != nil {
+	// 	fmt.Println("insert o1 failed")
+	// }
+	// o1.Add()
+	// if err != nil {
+	// 	fmt.Println("insert o1_2 failed")
+	// }
+	// var check_insert_success bool
+	// var index int
+	// for !check_insert_success {
+	// 	o2 := order.Order{
+	// 		OrderSN:      order.GenerateOrderSN(index),
+	// 		UserID:       "jjwwt",
+	// 		ProductId:    2,
+	// 		Amount:       5,
+	// 		PaymentTotal: 5000,
+	// 	}
+	// 	err := o2.Add()
+	// 	if err != nil {
+	// 		fmt.Println("insert o2 failed")
+	// 		index++
+	// 	} else {
+	// 		check_insert_success = true
+	// 	}
+	// }
+
 }
 
 func GetData() {
@@ -81,11 +115,11 @@ func GetData() {
 	// 	fmt.Println(s)
 	// }
 
-	var t line.Search_Time
-	t.Start, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
-	t.End, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
-	fmt.Println(t.Check_Remain_Num_Enough(3, "A區"))
-	t.SearchRemainCamp_ALL()
+	order, _ := order.GetAllOrder()
+
+	for i, r := range order {
+		fmt.Println("order", i, ":", r)
+	}
 	// ps, _ := product.GetAll()
 	// for _, p := range ps {
 	// 	fmt.Println(p, p.ID)

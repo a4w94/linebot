@@ -8,7 +8,7 @@ import (
 
 func CreateOrder(c *gin.Context) {
 	var orders = order.Order{
-		OrderSN:     "GG123",
+		OrderSN:     "20221023001",
 		UserID:      "k123",
 		UserName:    "JJ",
 		PhoneNumber: "0909990",
