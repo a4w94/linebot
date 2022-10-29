@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
-	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/internal/route"
@@ -115,11 +114,27 @@ func GetData() {
 	// 	fmt.Println(s)
 	// }
 
-	order, _ := order.GetAllOrder()
+	start, _ := time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
 
-	for i, r := range order {
-		fmt.Println("order", i, ":", r)
+	end, _ := time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
+	ordernum := 2
+	stocks, _ := stock.GetStocks_By_ID_and_DateRange(1, start, end)
+	fmt.Println("Get id 1 stocks")
+
+	for _, r := range stocks {
+		fmt.Println(r)
 	}
+	for i := range stocks {
+		stocks[i].RemainNum -= ordernum
+		stock.UpdateStockRemain(stocks[i])
+	}
+	stocks2, _ := stock.GetStocks_By_ID_and_DateRange(1, start, end)
+	fmt.Println("Get id 1 stocks update")
+
+	for _, r := range stocks2 {
+		fmt.Println(r)
+	}
+
 	// ps, _ := product.GetAll()
 	// for _, p := range ps {
 	// 	fmt.Println(p, p.ID)

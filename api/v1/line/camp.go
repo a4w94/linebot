@@ -463,8 +463,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 		if err != nil {
 			fmt.Println("get id failed")
 		}
-		start, _ := time.Parse("2006-01-02", info.Start)
-		end, _ := time.Parse("2006-01-02", info.End)
+		search_time := parse_string_to_SearchTime(info.Start, info.End)
 
 		var check_insert_success bool
 		var index int
@@ -478,20 +477,22 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 				ProductId:    int(product.ID),
 				Amount:       amount,
 				PaymentTotal: paymenttotal,
-				Checkin:      start,
-				Checkout:     end,
+				Checkin:      search_time.Start,
+				Checkout:     search_time.End,
 			}
 
 			err = tmp_order.Add()
 
-			order, _ := order.GetAllOrder()
-			fmt.Println("Order", order)
+			// order, _ := order.GetAllOrder()
+			// fmt.Println("Order", order)
 			if err != nil {
 				log.Println("新增訂單失敗", err)
 				index++
 				reply_mes = "訂位失敗，請重新查詢"
 			} else {
 				check_insert_success = true
+				search_time.Update_Stock_Remain_by_Order(tmp_order)
+
 			}
 		}
 		t := time.Now().AddDate(0, 0, 3).Format("2006-01-02")
@@ -509,4 +510,11 @@ func get_string_data(str string) string {
 	i := strings.Index(str, "=")
 	tmp := str[i+1:]
 	return tmp
+}
+
+func parse_string_to_SearchTime(start, end string) (t Search_Time) {
+	t.Start, _ = time.Parse("2006-01-02", start)
+	t.End, _ = time.Parse("2006-01-02", end)
+
+	return t
 }

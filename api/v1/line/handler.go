@@ -2,6 +2,7 @@ package line
 
 import (
 	"fmt"
+	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/pkg/tool"
@@ -83,4 +84,13 @@ func (t Search_Time) Check_Remain_Num_Enough(input_order_num int, region_name st
 
 	return input_order_num <= remain
 
+}
+
+func (t Search_Time) Update_Stock_Remain_by_Order(o order.Order) {
+	stocks, _ := stock.GetStocks_By_ID_and_DateRange(uint(o.ProductId), t.Start, t.End)
+
+	for i := range stocks {
+		stocks[i].RemainNum -= o.Amount
+		stock.UpdateStockRemain(stocks[i])
+	}
 }
