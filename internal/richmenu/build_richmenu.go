@@ -126,6 +126,7 @@ func CreatRichMenu_B(bot *linebot.Client, aid string) string {
 				Action: linebot.RichMenuAction{
 					Type: linebot.RichMenuActionTypeMessage,
 					Text: "我要訂位",
+					Data: "action=search&type=user_search",
 				},
 			},
 
@@ -134,6 +135,7 @@ func CreatRichMenu_B(bot *linebot.Client, aid string) string {
 				Action: linebot.RichMenuAction{
 					Type: linebot.RichMenuActionTypeMessage,
 					Text: "營地資訊",
+					Data: "action=camp_info",
 				},
 			},
 			{
@@ -142,13 +144,14 @@ func CreatRichMenu_B(bot *linebot.Client, aid string) string {
 					Type:  linebot.RichMenuActionTypeMessage,
 					Label: "營地位置",
 					Text:  "營地位置",
-				},
+					Data:  "action=camp_location"},
 			},
 			{
 				Bounds: linebot.RichMenuBounds{X: 0, Y: 788, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
 					Type: linebot.RichMenuActionTypeMessage,
 					Text: "我的訂單",
+					Data: "action=order&type=user_orders",
 				},
 			},
 

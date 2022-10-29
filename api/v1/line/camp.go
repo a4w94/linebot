@@ -66,15 +66,13 @@ func CampReply(c *gin.Context) {
 				text_trimspace := strings.TrimSpace(message.Text)
 
 				switch {
-				case text_trimspace == "我要訂位":
-					reply_date_limit(bot, event)
+				// case text_trimspace == "我要訂位":
+				// 	reply_date_limit(bot, event)
 
-				case text_trimspace == "營地位置":
-					bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069)).Do()
+				// case text_trimspace == "營地位置":
 
-				case text_trimspace == "營地資訊":
+				// case text_trimspace == "營地資訊":
 
-					Img_Carousel_CampRound_Info(bot, event)
 				case strings.Contains(text_trimspace, "訂單資訊"):
 					ok, check, _ := parase_Order_Info(text_trimspace)
 					fmt.Println(ok, check)
@@ -110,6 +108,8 @@ func CampReply(c *gin.Context) {
 			case "search":
 
 				switch data.Type {
+				case "user_search":
+					reply_date_limit(bot, event)
 
 				case "get_start_time":
 					date := event.Postback.Params.Date
@@ -136,7 +136,18 @@ func CampReply(c *gin.Context) {
 				}
 
 			case "order":
-				data.reply_Order_Confirm(bot, event)
+				switch data.Type {
+				case "place":
+					data.reply_Order_Confirm(bot, event)
+				case "user_orders":
+					data.reply_User_All_Orders(bot, event)
+
+				case "report":
+				}
+			case "camp_info":
+				Img_Carousel_CampRound_Info(bot, event)
+			case "camp_location":
+				bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069)).Do()
 
 			}
 			fmt.Println("data", event.Postback.Data)
@@ -203,7 +214,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label:       "我要訂位",
-					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
+					Data:        fmt.Sprintf("action=order&type=place&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					InputOption: linebot.InputOptionOpenKeyboard,
 					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: \n電話: 09\n訂位數量: ", s.Product.CampRoundName, start, end, s.PaymentTotal),
 				},
@@ -467,18 +478,21 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 
 		var check_insert_success bool
 		var index int
+		deadline := time.Now().AddDate(0, 0, 3)
+
 		for !check_insert_success {
 			order_sn = order.GenerateOrderSN(index)
 			var tmp_order = order.Order{
-				OrderSN:      order_sn,
-				UserID:       event.Source.UserID,
-				UserName:     info.UserName,
-				PhoneNumber:  info.PhoneNumber,
-				ProductId:    int(product.ID),
-				Amount:       amount,
-				PaymentTotal: paymenttotal,
-				Checkin:      search_time.Start,
-				Checkout:     search_time.End,
+				OrderSN:        order_sn,
+				UserID:         event.Source.UserID,
+				UserName:       info.UserName,
+				PhoneNumber:    info.PhoneNumber,
+				ProductId:      int(product.ID),
+				Amount:         amount,
+				PaymentTotal:   paymenttotal,
+				Checkin:        search_time.Start,
+				Checkout:       search_time.End,
+				ReportDeadLine: deadline,
 			}
 
 			err = tmp_order.Add()
@@ -495,8 +509,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 
 			}
 		}
-		t := time.Now().AddDate(0, 0, 3).Format("2006-01-02")
-		remit := fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", t, info.PaymentTotal)
+		remit := fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", deadline.Format("2006-01-02"), info.PaymentTotal)
 		reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", order_sn, info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
 
 	}
@@ -504,6 +517,54 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 
 	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply_mes)).Do()
 
+}
+
+func (p_d ParseData) reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
+	fmt.Println("reply_User_All_Orders")
+	orders, _ := order.GetOrdersByUserID(event.Source.UserID)
+	for _, r := range orders {
+		fmt.Println(r)
+
+	}
+	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("我的訂單",
+		&linebot.CarouselTemplate{
+			Columns:          carousel_Orders(orders),
+			ImageAspectRatio: "rectangle",
+			ImageSize:        "cover",
+		})).Do()
+
+}
+
+func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
+
+	for _, o := range orders {
+		deadline := o.ReportDeadLine.Format("2006-01-02")
+		start := o.Checkin.Format("2006-01-02")
+		end := o.Checkout.Format("2006-01-02")
+		camp, _ := product.GetById(int64(o.ProductId))
+		var remit string
+		if o.BankConfirmStatus == order.BankStatus_Unreport {
+			remit = fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %d\n", deadline, o.PaymentTotal)
+		}
+		reply_mes := fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n----------------------\n%s", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit)
+
+		tmp := linebot.CarouselColumn{
+
+			ImageBackgroundColor: "#000000",
+
+			Text: reply_mes,
+			Actions: []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label:       "我要訂位",
+					Data:        "action=order",
+					InputOption: linebot.InputOptionOpenKeyboard,
+					FillInText:  fmt.Sprintf("訂單編號%s \n----------------------\n回報帳號後5碼: \n", o.OrderSN),
+				},
+			},
+		}
+		c_t = append(c_t, &tmp)
+	}
+	return c_t
 }
 
 func get_string_data(str string) string {

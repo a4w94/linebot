@@ -91,6 +91,6 @@ func (t Search_Time) Update_Stock_Remain_by_Order(o order.Order) {
 
 	for i := range stocks {
 		stocks[i].RemainNum -= o.Amount
-		stock.UpdateStockRemain(stocks[i])
+		stock.UpdateStock(stocks[i])
 	}
 }

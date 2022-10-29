@@ -126,7 +126,7 @@ func GetData() {
 	}
 	for i := range stocks {
 		stocks[i].RemainNum -= ordernum
-		stock.UpdateStockRemain(stocks[i])
+		stock.UpdateStock(stocks[i])
 	}
 	stocks2, _ := stock.GetStocks_By_ID_and_DateRange(1, start, end)
 	fmt.Println("Get id 1 stocks update")
