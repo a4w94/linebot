@@ -66,12 +66,15 @@ func CampReply(c *gin.Context) {
 				text_trimspace := strings.TrimSpace(message.Text)
 
 				switch {
-				// case text_trimspace == "我要訂位":
-				// 	reply_date_limit(bot, event)
+				case text_trimspace == "我要訂位":
+					reply_date_limit(bot, event)
 
-				// case text_trimspace == "營地位置":
+				case text_trimspace == "營地位置":
 
-				// case text_trimspace == "營地資訊":
+				case text_trimspace == "營地資訊":
+
+				case text_trimspace == "我的訂單":
+					reply_User_All_Orders(bot, event)
 
 				case strings.Contains(text_trimspace, "訂單資訊"):
 					ok, check, _ := parase_Order_Info(text_trimspace)
@@ -108,8 +111,6 @@ func CampReply(c *gin.Context) {
 			case "search":
 
 				switch data.Type {
-				case "user_search":
-					reply_date_limit(bot, event)
 
 				case "get_start_time":
 					date := event.Postback.Params.Date
@@ -139,10 +140,7 @@ func CampReply(c *gin.Context) {
 				switch data.Type {
 				case "place":
 					data.reply_Order_Confirm(bot, event)
-				case "user_orders":
-					data.reply_User_All_Orders(bot, event)
 
-				case "report":
 				}
 			case "camp_info":
 				Img_Carousel_CampRound_Info(bot, event)
@@ -519,7 +517,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 
 }
 
-func (p_d ParseData) reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
+func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	fmt.Println("reply_User_All_Orders")
 	orders, _ := order.GetOrdersByUserID(event.Source.UserID)
 	for _, r := range orders {
