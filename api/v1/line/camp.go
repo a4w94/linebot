@@ -70,37 +70,16 @@ func CampReply(c *gin.Context) {
 					reply_date_limit(bot, event)
 
 				case text_trimspace == "營地位置":
+					bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069)).Do()
 
 				case text_trimspace == "營地資訊":
+					Img_Carousel_CampRound_Info(bot, event)
 
 				case text_trimspace == "我的訂單":
 					reply_User_All_Orders(bot, event)
 
 				case strings.Contains(text_trimspace, "訂單資訊"):
-					ok, check, _ := parase_Order_Info(text_trimspace)
-					fmt.Println(ok, check)
-					data_yes := fmt.Sprintf("action=order&status=yes&data=%s", check)
-					fmt.Println("data_yes", data_yes)
-					if ok {
-						bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂位資訊",
-							&linebot.ConfirmTemplate{
-								Text: check,
-								Actions: []linebot.TemplateAction{
-									&linebot.PostbackAction{
-										Label: "是",
-										Data:  data_yes,
-										Text:  "是",
-									},
-									&linebot.PostbackAction{
-										Label: "否",
-										Data:  "action=order&status=no",
-										Text:  "否",
-									},
-								},
-							})).Do()
-					} else {
-						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(check)).Do()
-					}
+					get_User_Order(text_trimspace, bot, event)
 				}
 			}
 		}
@@ -142,10 +121,6 @@ func CampReply(c *gin.Context) {
 					data.reply_Order_Confirm(bot, event)
 
 				}
-			case "camp_info":
-				Img_Carousel_CampRound_Info(bot, event)
-			case "camp_location":
-				bot.ReplyMessage(event.ReplyToken, linebot.NewLocationMessage("小路露營區", "426台中市新社區崑山里食水嵙6-2號", 24.2402679, 120.7943069)).Do()
 
 			}
 			fmt.Println("data", event.Postback.Data)
@@ -212,7 +187,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label:       "我要訂位",
-					Data:        fmt.Sprintf("action=order&type=place&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
+					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					InputOption: linebot.InputOptionOpenKeyboard,
 					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: \n電話: 09\n訂位數量: ", s.Product.CampRoundName, start, end, s.PaymentTotal),
 				},
@@ -455,6 +430,34 @@ func Parase_postback(data string) (p_d ParseData) {
 		}
 	}
 	return p_d
+}
+
+//獲取使用者訂單 回覆確認訊息
+func get_User_Order(text string, bot *linebot.Client, event *linebot.Event) {
+	ok, check, _ := parase_Order_Info(text)
+	fmt.Println(ok, check)
+	data_yes := fmt.Sprintf("action=order&type=place&status=yes&data=%s", check)
+	fmt.Println("data_yes", data_yes)
+	if ok {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂位資訊",
+			&linebot.ConfirmTemplate{
+				Text: check,
+				Actions: []linebot.TemplateAction{
+					&linebot.PostbackAction{
+						Label: "是",
+						Data:  data_yes,
+						Text:  "是",
+					},
+					&linebot.PostbackAction{
+						Label: "否",
+						Data:  "action=order&type=place&status=no",
+						Text:  "否",
+					},
+				},
+			})).Do()
+	} else {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(check)).Do()
+	}
 }
 
 func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Event) {
