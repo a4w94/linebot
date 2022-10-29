@@ -79,7 +79,7 @@ func CampReply(c *gin.Context) {
 					reply_User_All_Orders(bot, event)
 
 				case strings.Contains(text_trimspace, "訂單資訊"):
-					get_User_Order(text_trimspace, bot, event)
+					get_User_Place(text_trimspace, bot, event)
 				}
 			}
 		}
@@ -433,7 +433,7 @@ func Parase_postback(data string) (p_d ParseData) {
 }
 
 //獲取使用者訂單 回覆確認訊息
-func get_User_Order(text string, bot *linebot.Client, event *linebot.Event) {
+func get_User_Place(text string, bot *linebot.Client, event *linebot.Event) {
 	ok, check, _ := parase_Order_Info(text)
 	fmt.Println(ok, check)
 	data_yes := fmt.Sprintf("action=order&type=place&status=yes&data=%s", check)
@@ -521,7 +521,12 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 }
 
 func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
-	fmt.Println("reply_User_All_Orders")
+	fmt.Println("reply_User_All_Orders", event.Source.UserID)
+	all, _ := order.GetAllOrder()
+	fmt.Println("all order")
+	for _, r := range all {
+		fmt.Println(r)
+	}
 	orders, _ := order.GetOrdersByUserID(event.Source.UserID)
 	for _, r := range orders {
 		fmt.Println(r)
@@ -547,7 +552,7 @@ func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 		if o.BankConfirmStatus == order.BankStatus_Unreport {
 			remit = fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %d\n", deadline, o.PaymentTotal)
 		}
-		reply_mes := fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n----------------------\n%s", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit)
+		reply_mes := fmt.Sprintf("訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n----------------------\n%s", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit)
 
 		tmp := linebot.CarouselColumn{
 
@@ -556,8 +561,8 @@ func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 			Text: reply_mes,
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
-					Label:       "我要訂位",
-					Data:        "action=order",
+					Label:       "回報帳號後五碼",
+					Data:        "action=report",
 					InputOption: linebot.InputOptionOpenKeyboard,
 					FillInText:  fmt.Sprintf("訂單編號%s \n----------------------\n回報帳號後5碼: \n", o.OrderSN),
 				},
