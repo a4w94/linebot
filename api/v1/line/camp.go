@@ -403,7 +403,10 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 					amount, _ := strconv.Atoi(tmp.Amount)
 					p, _ := product.GetIdByCampRoundName(tmp.Region)
 					pay := s_t.camp_PaymentTotal(p)
+					fmt.Println("pay1", pay)
+					fmt.Println(amount, tmp.Amount)
 					pay *= amount
+					fmt.Println("pay2", pay)
 					tmp.PaymentTotal = strconv.Itoa(pay)
 				}
 			}
@@ -486,7 +489,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 			order_sn = order.GenerateOrderSN(index)
 			var tmp_order = order.Order{
 				OrderSN:        order_sn,
-				UserID:         strings.TrimSpace(event.Source.UserID),
+				UserID:         event.Source.UserID,
 				UserName:       info.UserName,
 				PhoneNumber:    info.PhoneNumber,
 				ProductId:      int(product.ID),
@@ -528,8 +531,8 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	for _, r := range all {
 		fmt.Println(r)
 	}
-	orders, _ := order.GetOrdersByUserID(strings.TrimSpace(event.Source.UserID))
-	fmt.Printf("%stest\n", event.Source.UserID)
+	orders, _ := order.GetOrdersByUserID(event.Source.UserID)
+	fmt.Println("user id", event.Source.UserID)
 	fmt.Println(orders)
 	for _, r := range orders {
 		fmt.Println(r)

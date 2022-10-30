@@ -54,7 +54,8 @@ func GetAllOrder() ([]Order, error) {
 
 func GetOrdersByUserID(user_id string) ([]Order, error) {
 	var getOrder []Order
-	err := db.DB.Where("user_id<>?", user_id).Find(&getOrder).Error
+	id := fmt.Sprintf("%s ", user_id)
+	err := db.DB.Where("user_id<>?", id).Find(&getOrder).Error
 
 	return getOrder, err
 }
