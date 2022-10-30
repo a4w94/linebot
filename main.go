@@ -17,7 +17,7 @@ func main() {
 	//db.InitDbContext()
 
 	TestData()
-	GetData()
+	//GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)
@@ -119,13 +119,13 @@ func GetData() {
 
 	// o_s, _ := order.GetAllOrder()
 	// for _, r := range o_s {
-	// 	fmt.Println(r)
+	// 	fmt.Println(r.UserID, r)
 	// }
 
-	// o_s2, _ := order.GetOrdersByUserID("U8d3ff666c698729d2de5d62cf4607964")
+	// o_s2, _ := order.GetOrdersByUserID("U8d3ff666c698729d2de5d62cf4607964 ")
 	// for _, r := range o_s2 {
 	// 	fmt.Println(r)
-	//}
+	// }
 
 	// stocks, _ := stock.GetAll()
 	// for _, s := range stocks {

@@ -189,7 +189,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 					Label:       "我要訂位",
 					Data:        fmt.Sprintf("action=order&item=%d&num=%d", s.Product.ID, s.RemainMinAmount),
 					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: \n電話: 09\n訂位數量: ", s.Product.CampRoundName, start, end, s.PaymentTotal),
+					FillInText:  fmt.Sprintf("訂單資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n----------------------\n訂位者姓名: \n電話: 09\n訂位數量: ", s.Product.CampRoundName, start, end),
 				},
 			},
 		}
@@ -381,11 +381,6 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 					}
 					tmp.End = v
 
-				case "總金額":
-
-					p, _ := product.GetIdByCampRoundName(tmp.Region)
-					pay := s_t.camp_PaymentTotal(p)
-					tmp.PaymentTotal = strconv.Itoa(pay)
 				case "訂位者姓名":
 					tmp.UserName = v
 				case "電話":
@@ -404,6 +399,11 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 					} else {
 						tmp.Amount = v
 					}
+				case "總金額":
+					amount, _ := strconv.Atoi(tmp.Amount)
+					p, _ := product.GetIdByCampRoundName(tmp.Region)
+					pay := s_t.camp_PaymentTotal(p) * amount
+					tmp.PaymentTotal = strconv.Itoa(pay)
 				}
 			}
 		}
@@ -485,7 +485,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 			order_sn = order.GenerateOrderSN(index)
 			var tmp_order = order.Order{
 				OrderSN:        order_sn,
-				UserID:         event.Source.UserID,
+				UserID:         strings.TrimSpace(event.Source.UserID),
 				UserName:       info.UserName,
 				PhoneNumber:    info.PhoneNumber,
 				ProductId:      int(product.ID),
