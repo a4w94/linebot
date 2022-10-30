@@ -339,7 +339,7 @@ func reply_date_limit(bot *linebot.Client, event *linebot.Event) {
 }
 
 func parase_Order_Info(info string) (bool, string, Order_Info) {
-	fmt.Println("收到訂單資訊", info)
+	// fmt.Println("收到訂單資訊", info)
 	var tmp Order_Info
 	split := strings.Split(info, "\n")
 	info_map := make(map[string]string)
@@ -414,7 +414,7 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	}
 
 	order_info := fmt.Sprintf("確認訂位資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s", tmp.Region, tmp.Start, tmp.End, tmp.PaymentTotal, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
-	fmt.Println("order info", order_info)
+	//fmt.Println("order info", order_info)
 	return true, order_info, tmp
 }
 
@@ -439,9 +439,9 @@ func Parase_postback(data string) (p_d ParseData) {
 //獲取使用者訂單 回覆確認訊息
 func get_User_Place(text string, bot *linebot.Client, event *linebot.Event) {
 	ok, check, _ := parase_Order_Info(text)
-	fmt.Println(ok, check)
+	//fmt.Println(ok, check)
 	data_yes := fmt.Sprintf("action=order&type=place&status=yes&data=%s", check)
-	fmt.Println("data_yes", data_yes)
+	//fmt.Println("data_yes", data_yes)
 	if ok {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂位資訊",
 			&linebot.ConfirmTemplate{
@@ -566,8 +566,8 @@ func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 		tmp := linebot.CarouselColumn{
 
 			ImageBackgroundColor: "#000000",
-
-			Text: reply_mes,
+			Title:                "您的訂單",
+			Text:                 reply_mes,
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label:       "回報帳號後五碼",
