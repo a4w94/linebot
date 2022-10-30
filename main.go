@@ -109,31 +109,49 @@ func TestData() {
 
 func GetData() {
 
+	// var o = order.Order{
+	// 	OrderSN:   "dasfe123",
+	// 	Amount:    1,
+	// 	ProductId: 2,
+	// 	UserID:    "U8d3ff666c698729d2de5d62cf4607964",
+	// }
+	// o.Add()
+
+	// o_s, _ := order.GetAllOrder()
+	// for _, r := range o_s {
+	// 	fmt.Println(r)
+	// }
+
+	// o_s2, _ := order.GetOrdersByUserID("U8d3ff666c698729d2de5d62cf4607964")
+	// for _, r := range o_s2 {
+	// 	fmt.Println(r)
+	//}
+
 	// stocks, _ := stock.GetAll()
 	// for _, s := range stocks {
 	// 	fmt.Println(s)
 	// }
 
-	start, _ := time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
+	// start, _ := time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
 
-	end, _ := time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
-	ordernum := 2
-	stocks, _ := stock.GetStocks_By_ID_and_DateRange(1, start, end)
-	fmt.Println("Get id 1 stocks")
+	// end, _ := time.Parse("2006-01-02", time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
+	// ordernum := 2
+	// stocks, _ := stock.GetStocks_By_ID_and_DateRange(1, start, end)
+	// fmt.Println("Get id 1 stocks")
 
-	for _, r := range stocks {
-		fmt.Println(r)
-	}
-	for i := range stocks {
-		stocks[i].RemainNum -= ordernum
-		stock.UpdateStock(stocks[i])
-	}
-	stocks2, _ := stock.GetStocks_By_ID_and_DateRange(1, start, end)
-	fmt.Println("Get id 1 stocks update")
+	// for _, r := range stocks {
+	// 	fmt.Println(r)
+	// }
+	// for i := range stocks {
+	// 	stocks[i].RemainNum -= ordernum
+	// 	stock.UpdateStock(stocks[i])
+	// }
+	// stocks2, _ := stock.GetStocks_By_ID_and_DateRange(1, start, end)
+	// fmt.Println("Get id 1 stocks update")
 
-	for _, r := range stocks2 {
-		fmt.Println(r)
-	}
+	// for _, r := range stocks2 {
+	// 	fmt.Println(r)
+	// }
 
 	// ps, _ := product.GetAll()
 	// for _, p := range ps {

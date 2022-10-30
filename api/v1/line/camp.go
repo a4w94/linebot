@@ -528,17 +528,22 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 		fmt.Println(r)
 	}
 	orders, _ := order.GetOrdersByUserID(event.Source.UserID)
+	fmt.Println("get order by id", event.Source.UserID)
+	fmt.Println(orders)
 	for _, r := range orders {
 		fmt.Println(r)
 
 	}
-	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("我的訂單",
-		&linebot.CarouselTemplate{
-			Columns:          carousel_Orders(orders),
-			ImageAspectRatio: "rectangle",
-			ImageSize:        "cover",
-		})).Do()
-
+	if len(orders) == 0 {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("您尚未有訂單記錄唷！如有喜歡的營位，請儘速訂位")).Do()
+	} else {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("我的訂單",
+			&linebot.CarouselTemplate{
+				Columns:          carousel_Orders(orders),
+				ImageAspectRatio: "rectangle",
+				ImageSize:        "cover",
+			})).Do()
+	}
 }
 
 func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
