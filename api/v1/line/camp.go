@@ -29,10 +29,10 @@ type Order_Info struct {
 	Region       string `tag:"區域"`
 	Start        string `tag:"起始日期"`
 	End          string `tag:"結束日期"`
-	PaymentTotal string `tag:"總金額"`
 	UserName     string `tag:"訂位者姓名"`
 	PhoneNumber  string `tag:"電話"`
 	Amount       string `tag:"訂位數量"`
+	PaymentTotal string `tag:"總金額"`
 }
 
 var Search map[string]*Search_Time
@@ -402,7 +402,8 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 				case "總金額":
 					amount, _ := strconv.Atoi(tmp.Amount)
 					p, _ := product.GetIdByCampRoundName(tmp.Region)
-					pay := s_t.camp_PaymentTotal(p) * amount
+					pay := s_t.camp_PaymentTotal(p)
+					pay *= amount
 					tmp.PaymentTotal = strconv.Itoa(pay)
 				}
 			}
@@ -521,14 +522,14 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 }
 
 func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
-	fmt.Println("reply_User_All_Orders", event.Source.UserID)
+	fmt.Println("reply_User_All_Orders")
 	all, _ := order.GetAllOrder()
 	fmt.Println("all order")
 	for _, r := range all {
 		fmt.Println(r)
 	}
-	orders, _ := order.GetOrdersByUserID(event.Source.UserID)
-	fmt.Println("get order by id", event.Source.UserID)
+	orders, _ := order.GetOrdersByUserID(strings.TrimSpace(event.Source.UserID))
+	fmt.Printf("%stest\n", event.Source.UserID)
 	fmt.Println(orders)
 	for _, r := range orders {
 		fmt.Println(r)
