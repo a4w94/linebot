@@ -1,7 +1,6 @@
 package line
 
 import (
-	"fmt"
 	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
@@ -17,14 +16,14 @@ type RemainCamp struct {
 }
 
 func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
-	fmt.Println("all time:", t)
+	//fmt.Println("all time:", t)
 	var err error
 	products, err := product.GetAll()
 	if err != nil {
 		log.Println("Get Products Failed", err)
 	}
 
-	fmt.Println("開始搜尋全部剩餘營位")
+	//fmt.Println("開始搜尋全部剩餘營位")
 	for _, p := range products {
 		tmp := t.SearchRemainCamp(p)
 

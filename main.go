@@ -17,8 +17,8 @@ func main() {
 	//model.InitDbContext()
 	//db.InitDbContext()
 
-	//TestData()
-	GetData()
+	TestData()
+	//GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)

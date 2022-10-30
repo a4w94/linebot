@@ -123,7 +123,7 @@ func CampReply(c *gin.Context) {
 				}
 
 			}
-			fmt.Println("data", event.Postback.Data)
+			//fmt.Println("data", event.Postback.Data)
 
 		}
 	}
@@ -169,7 +169,7 @@ func Is_Name_Exist(name string) (product.Product, bool) {
 func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time) {
 	var c_t []*linebot.CarouselColumn
 	camp_searchs := t.SearchRemainCamp_ALL()
-	fmt.Println("input search time ", t)
+	// fmt.Println("input search time ", t)
 	// for i, r := range camp_searchs {
 	// 	fmt.Println(i, ":", r.Stocks)
 	// }
@@ -360,6 +360,7 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	t := reflect.TypeOf(tmp)
 	for i := 0; i < t.NumField(); i++ {
 		tag := t.Field(i).Tag.Get("tag")
+		fmt.Println(tag)
 		if v, ok := info_map[tag]; ok {
 			if strings.TrimSpace(v) == "" {
 				return false, fmt.Sprintf("%s輸入有誤,請重新訂位", tag), Order_Info{}
@@ -381,6 +382,16 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 					}
 					tmp.End = v
 
+				case "總金額":
+					amount, _ := strconv.Atoi(tmp.Amount)
+					p, _ := product.GetIdByCampRoundName(tmp.Region)
+					pay := s_t.camp_PaymentTotal(p)
+					fmt.Println("pay1", pay)
+					fmt.Println(amount, tmp.Amount)
+					pay *= amount
+					fmt.Println("pay2", pay)
+					tmp.PaymentTotal = strconv.Itoa(pay)
+
 				case "訂位者姓名":
 					tmp.UserName = v
 				case "電話":
@@ -393,21 +404,13 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 					if num == 0 {
 						return false, "訂位數量不得為零,請重新訂位", Order_Info{}
 					}
-					fmt.Println("s_t", s_t)
+					//fmt.Println("s_t", s_t)
 					if !s_t.Check_Remain_Num_Enough(num, tmp.Region) {
 						return false, "剩餘數量不足,請重新訂位", Order_Info{}
 					} else {
 						tmp.Amount = v
 					}
-				case "總金額":
-					amount, _ := strconv.Atoi(tmp.Amount)
-					p, _ := product.GetIdByCampRoundName(tmp.Region)
-					pay := s_t.camp_PaymentTotal(p)
-					fmt.Println("pay1", pay)
-					fmt.Println(amount, tmp.Amount)
-					pay *= amount
-					fmt.Println("pay2", pay)
-					tmp.PaymentTotal = strconv.Itoa(pay)
+
 				}
 			}
 		}
@@ -526,11 +529,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 
 func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	fmt.Println("reply_User_All_Orders")
-	all, _ := order.GetAllOrder()
-	fmt.Println("all order")
-	for _, r := range all {
-		fmt.Println(r)
-	}
+
 	orders, _ := order.GetOrdersByUserID(event.Source.UserID)
 	fmt.Println("user id", event.Source.UserID)
 	fmt.Println(orders)
@@ -562,7 +561,7 @@ func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 			remit = fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %d\n", deadline, o.PaymentTotal)
 		}
 		reply_mes := fmt.Sprintf("訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n----------------------\n%s", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit)
-
+		fmt.Println("reply_mes", reply_mes)
 		tmp := linebot.CarouselColumn{
 
 			ImageBackgroundColor: "#000000",
