@@ -498,7 +498,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 				Checkin:           search_time.Start,
 				Checkout:          search_time.End,
 				ReportDeadLine:    deadline,
-				BankConfirmStatus: order.BankStatus_UnConfirm,
+				BankConfirmStatus: order.BankStatus_Unreport,
 			}
 
 			err = tmp_order.Add()
