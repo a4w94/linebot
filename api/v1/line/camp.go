@@ -535,8 +535,10 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	}
 	if len(orders) == 0 {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("您尚未有訂單記錄唷！如有喜歡的營位，請儘速訂位")).Do()
+	} else if len(orders) == 1 {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("My Orders",
+			carousel_Orders_one(orders))).Do()
 	} else {
-
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("My Orders",
 			&linebot.CarouselTemplate{
 				Columns:          carousel_Orders(orders),
@@ -546,6 +548,43 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	}
 }
 
+func carousel_Orders_one(orders []order.Order) (c *linebot.ButtonsTemplate) {
+	o := orders[0]
+	deadline := o.ReportDeadLine.Format("2006-01-02")
+	start := o.Checkin.Format("2006-01-02")
+	end := o.Checkout.Format("2006-01-02")
+	camp, _ := product.GetById(int64(o.ProductId))
+	var remit string
+	var status_mes string
+	if o.BankConfirmStatus == order.BankStatus_Unreport {
+		remit = fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %d\n", deadline, o.PaymentTotal)
+		status_mes = fmt.Sprintf("回報狀態: %s\n", o.BankConfirmStatus)
+	} else {
+		status_mes = fmt.Sprintf("回報狀態: %s\n帳號後五碼: %s", o.BankConfirmStatus, o.BankLast5Num)
+
+	}
+	reply_mes := fmt.Sprintf("區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n%s\n----------------------\n%s", camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit, status_mes)
+	fmt.Println("reply_mes")
+	fmt.Println(reply_mes)
+
+	c = &linebot.ButtonsTemplate{
+		ImageAspectRatio:     "rectangle",
+		ImageSize:            "cover",
+		ImageBackgroundColor: "#FFFFFF",
+		Title:                fmt.Sprintf("訂單編號 %s", o.OrderSN),
+		Text:                 reply_mes,
+		Actions: []linebot.TemplateAction{
+			&linebot.PostbackAction{
+				Label:       "回報帳號後五碼",
+				Data:        "action=no",
+				InputOption: linebot.InputOptionOpenKeyboard,
+				FillInText:  fmt.Sprintf("訂單編號%s \n----------------------\n回報帳號後5碼: \n", o.OrderSN),
+			},
+		},
+	}
+
+	return c
+}
 func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
 	fmt.Println("orders", orders)
