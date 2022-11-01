@@ -536,9 +536,6 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	}
 	if len(orders) == 0 {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("您尚未有訂單記錄唷！如有喜歡的營位，請儘速訂位")).Do()
-	} else if len(orders) == 1 {
-		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("My Orders",
-			carousel_Orders_one(orders))).Do()
 	} else {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("My Orders",
 			&linebot.CarouselTemplate{
@@ -588,7 +585,6 @@ func carousel_Orders_one(orders []order.Order) (c *linebot.ButtonsTemplate) {
 }
 func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
-	fmt.Println("orders", orders)
 	for _, o := range orders {
 		deadline := o.ReportDeadLine.Format("2006-01-02")
 		start := o.Checkin.Format("2006-01-02")
@@ -597,19 +593,20 @@ func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 		var remit string
 		var status_mes string
 		if o.BankConfirmStatus == order.BankStatus_Unreport {
-			remit = fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %d\n", deadline, o.PaymentTotal)
-			status_mes = fmt.Sprintf("回報狀態: %s\n", o.BankConfirmStatus)
+			remit = fmt.Sprintf("*匯款資訊*\n銀行代號:822\n銀行名稱:中國信託商業銀行\n匯款帳號:0342523515\n匯款金額: %d\n匯款期限%s 23:59", o.PaymentTotal, deadline)
+			status_mes = fmt.Sprintf("回報狀態:%s", o.BankConfirmStatus)
 		} else {
-			status_mes = fmt.Sprintf("回報狀態: %s\n帳號後五碼: %s", o.BankConfirmStatus, o.BankLast5Num)
+			status_mes = fmt.Sprintf("回報狀態:%s\n帳號後五碼:%s", o.BankConfirmStatus, o.BankLast5Num)
 
 		}
-		reply_mes := fmt.Sprintf("區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n%s\n----------------------\n%s", camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit, status_mes)
+		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n起始日期:%s\n結束日期:%s\n總金額:%d", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
+		reply_mes := fmt.Sprintf("訂位者姓名:%s\n電話:%s\n訂位數量:%d\n%s\n----------------------\n%s", o.UserName, o.PhoneNumber, o.Amount, remit, status_mes)
 		fmt.Println("reply_mes")
 		fmt.Println(reply_mes)
 		tmp := linebot.CarouselColumn{
 
 			ImageBackgroundColor: "#000000",
-			Title:                fmt.Sprintf("訂單編號 %s", o.OrderSN),
+			Title:                title,
 			Text:                 reply_mes,
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
