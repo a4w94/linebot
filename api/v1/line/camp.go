@@ -539,34 +539,7 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("My Orders",
 			&linebot.CarouselTemplate{
-				Columns: []*linebot.CarouselColumn{
-					{
-						ImageBackgroundColor: "#000000",
-						Title:                "您的訂單",
-						Text:                 "test",
-						Actions: []linebot.TemplateAction{
-							&linebot.PostbackAction{
-								Label:       "回報帳號後五碼",
-								Data:        "action=no",
-								InputOption: linebot.InputOptionOpenKeyboard,
-								FillInText:  fmt.Sprintf("訂單編號%s \n----------------------\n回報帳號後5碼: \n", "12312415"),
-							},
-						},
-					},
-					{
-						ImageBackgroundColor: "#000000",
-						Title:                "您的訂單",
-						Text:                 "test",
-						Actions: []linebot.TemplateAction{
-							&linebot.PostbackAction{
-								Label:       "回報帳號後五碼",
-								Data:        "action=no",
-								InputOption: linebot.InputOptionOpenKeyboard,
-								FillInText:  fmt.Sprintf("訂單編號%s \n----------------------\n回報帳號後5碼: \n", "123124dd15"),
-							},
-						},
-					},
-				},
+				Columns:          carousel_Orders(orders),
 				ImageAspectRatio: "rectangle",
 				ImageSize:        "cover",
 			})).Do()
@@ -575,6 +548,7 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 
 func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
+	fmt.Println("orders", orders)
 	for _, o := range orders {
 		deadline := o.ReportDeadLine.Format("2006-01-02")
 		start := o.Checkin.Format("2006-01-02")
@@ -589,12 +563,13 @@ func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 			status_mes = fmt.Sprintf("回報狀態: %s\n帳號後五碼: %s", o.BankConfirmStatus, o.BankLast5Num)
 
 		}
-		reply_mes := fmt.Sprintf("訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n%s\n----------------------\n%s", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit, status_mes)
-		fmt.Println("reply_mes", reply_mes)
+		reply_mes := fmt.Sprintf("區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n%s\n----------------------\n%s", camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit, status_mes)
+		fmt.Println("reply_mes")
+		fmt.Println(reply_mes)
 		tmp := linebot.CarouselColumn{
 
 			ImageBackgroundColor: "#000000",
-			Title:                "您的訂單",
+			Title:                fmt.Sprintf("訂單編號 %s", o.OrderSN),
 			Text:                 reply_mes,
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
@@ -606,6 +581,10 @@ func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 			},
 		}
 		c_t = append(c_t, &tmp)
+	}
+
+	for i, r := range c_t {
+		fmt.Println(i, r)
 	}
 	return c_t
 }
