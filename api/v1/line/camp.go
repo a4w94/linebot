@@ -488,16 +488,17 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 		for !check_insert_success {
 			order_sn = order.GenerateOrderSN(index)
 			var tmp_order = order.Order{
-				OrderSN:        order_sn,
-				UserID:         event.Source.UserID,
-				UserName:       info.UserName,
-				PhoneNumber:    info.PhoneNumber,
-				ProductId:      int(product.ID),
-				Amount:         amount,
-				PaymentTotal:   paymenttotal,
-				Checkin:        search_time.Start,
-				Checkout:       search_time.End,
-				ReportDeadLine: deadline,
+				OrderSN:           order_sn,
+				UserID:            event.Source.UserID,
+				UserName:          info.UserName,
+				PhoneNumber:       info.PhoneNumber,
+				ProductId:         int(product.ID),
+				Amount:            amount,
+				PaymentTotal:      paymenttotal,
+				Checkin:           search_time.Start,
+				Checkout:          search_time.End,
+				ReportDeadLine:    deadline,
+				BankConfirmStatus: order.BankStatus_UnConfirm,
 			}
 
 			err = tmp_order.Add()
@@ -572,7 +573,7 @@ func carousel_Orders_one(orders []order.Order) (c *linebot.ButtonsTemplate) {
 		ImageSize:            "cover",
 		ImageBackgroundColor: "#FFFFFF",
 		Title:                fmt.Sprintf("訂單編號 %s", o.OrderSN),
-		Text:                 reply_mes,
+		Text:                 "reply_mes",
 		Actions: []linebot.TemplateAction{
 			&linebot.PostbackAction{
 				Label:       "回報帳號後五碼",
