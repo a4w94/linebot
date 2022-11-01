@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"linebot/api/v1/line"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
 	"linebot/internal/model/order"
@@ -18,7 +19,7 @@ func main() {
 	//db.InitDbContext()
 
 	TestData()
-	//GetData()
+	GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)
@@ -128,6 +129,7 @@ func GetData() {
 		fmt.Println(r)
 	}
 
+	line.Carousel_Orders(o_s2)
 	// stocks, _ := stock.GetAll()
 	// for _, s := range stocks {
 	// 	fmt.Println(s)

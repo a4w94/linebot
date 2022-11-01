@@ -539,7 +539,7 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	} else {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("My Orders",
 			&linebot.CarouselTemplate{
-				Columns:          carousel_Orders(orders),
+				Columns:          Carousel_Orders(orders),
 				ImageAspectRatio: "rectangle",
 				ImageSize:        "cover",
 			})).Do()
@@ -583,34 +583,32 @@ func carousel_Orders_one(orders []order.Order) (c *linebot.ButtonsTemplate) {
 
 	return c
 }
-func carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
+func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
 	for _, o := range orders {
-		deadline := o.ReportDeadLine.Format("2006-01-02")
 		start := o.Checkin.Format("2006-01-02")
 		end := o.Checkout.Format("2006-01-02")
 		camp, _ := product.GetById(int64(o.ProductId))
 		var remit string
 		var status_mes string
 		if o.BankConfirmStatus == order.BankStatus_Unreport {
-			remit = fmt.Sprintf("*匯款資訊*\n銀行代號:822\n銀行名稱:中國信託商業銀行\n匯款帳號:0342523515\n匯款金額: %d\n匯款期限%s 23:59", o.PaymentTotal, deadline)
-			status_mes = fmt.Sprintf("回報狀態:%s", o.BankConfirmStatus)
+			status_mes = fmt.Sprintf("狀態:%s (點此回報)", o.BankConfirmStatus)
 		} else {
-			status_mes = fmt.Sprintf("回報狀態:%s\n帳號後五碼:%s", o.BankConfirmStatus, o.BankLast5Num)
+			status_mes = fmt.Sprintf("狀態:%s\n帳號後五碼:%s (點此修改)", o.BankConfirmStatus, o.BankLast5Num)
 
 		}
-		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n起始日期:%s\n結束日期:%s\n總金額:%d", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
-		reply_mes := fmt.Sprintf("訂位者姓名:%s\n電話:%s\n訂位數量:%d\n%s\n----------------------\n%s", o.UserName, o.PhoneNumber, o.Amount, remit, status_mes)
+		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d\n", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
+		reply_mes := fmt.Sprintf("%s訂位者姓名:%s\n電話:%s\n訂位數量:%d\n%s", title, o.UserName, o.PhoneNumber, o.Amount, remit)
 		fmt.Println("reply_mes")
 		fmt.Println(reply_mes)
 		tmp := linebot.CarouselColumn{
 
 			ImageBackgroundColor: "#000000",
-			Title:                title,
-			Text:                 reply_mes,
+
+			Text: reply_mes,
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
-					Label:       "回報帳號後五碼",
+					Label:       status_mes,
 					Data:        "action=no",
 					InputOption: linebot.InputOptionOpenKeyboard,
 					FillInText:  fmt.Sprintf("訂單編號%s \n----------------------\n回報帳號後5碼: \n", o.OrderSN),
