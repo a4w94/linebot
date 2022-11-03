@@ -80,6 +80,9 @@ func CampReply(c *gin.Context) {
 
 				case strings.Contains(text_trimspace, "訂單資訊"):
 					get_User_Place(text_trimspace, bot, event)
+				case strings.Contains(text_trimspace, "*回報資訊*"):
+					report_Bank_Last_FiveNumbers(bot, event, text_trimspace)
+
 				}
 			}
 		}
@@ -546,43 +549,6 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	}
 }
 
-func carousel_Orders_one(orders []order.Order) (c *linebot.ButtonsTemplate) {
-	o := orders[0]
-	deadline := o.ReportDeadLine.Format("2006-01-02")
-	start := o.Checkin.Format("2006-01-02")
-	end := o.Checkout.Format("2006-01-02")
-	camp, _ := product.GetById(int64(o.ProductId))
-	var remit string
-	var status_mes string
-	if o.BankConfirmStatus == order.BankStatus_Unreport {
-		remit = fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %d\n", deadline, o.PaymentTotal)
-		status_mes = fmt.Sprintf("回報狀態: %s\n", o.BankConfirmStatus)
-	} else {
-		status_mes = fmt.Sprintf("回報狀態: %s\n帳號後五碼: %s", o.BankConfirmStatus, o.BankLast5Num)
-
-	}
-	reply_mes := fmt.Sprintf("區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d\n%s\n----------------------\n%s", camp.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount, remit, status_mes)
-	fmt.Println("reply_mes")
-	fmt.Println(reply_mes)
-
-	c = &linebot.ButtonsTemplate{
-		ImageAspectRatio:     "rectangle",
-		ImageSize:            "cover",
-		ImageBackgroundColor: "#FFFFFF",
-		Title:                fmt.Sprintf("訂單編號 %s", o.OrderSN),
-		Text:                 "reply_mes",
-		Actions: []linebot.TemplateAction{
-			&linebot.PostbackAction{
-				Label:       "回報帳號後五碼",
-				Data:        "action=no",
-				InputOption: linebot.InputOptionOpenKeyboard,
-				FillInText:  fmt.Sprintf("訂單編號%s \n----------------------\n回報帳號後5碼: \n", o.OrderSN),
-			},
-		},
-	}
-
-	return c
-}
 func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
 	for _, o := range orders {
@@ -597,7 +563,7 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 			status_mes = fmt.Sprintf("狀態:%s\n帳號後五碼:%s (點此修改)", o.BankConfirmStatus, o.BankLast5Num)
 
 		}
-		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d\n", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
+		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
 		reply_mes := fmt.Sprintf("%s訂位者姓名:%s\n電話:%s\n訂位數量:%d\n%s", title, o.UserName, o.PhoneNumber, o.Amount, remit)
 		fmt.Println("reply_mes")
 		fmt.Println(reply_mes)
@@ -609,9 +575,9 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 			Actions: []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label:       status_mes,
-					Data:        "action=no",
+					Data:        fmt.Sprintf("action=report&data=%s", o.OrderSN),
 					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  fmt.Sprintf("訂單編號%s \n----------------------\n回報帳號後5碼: \n", o.OrderSN),
+					FillInText:  fmt.Sprintf("*回報資訊*\n訂單編號%s \n----------------------\n回報帳號後5碼: \n", o.OrderSN),
 				},
 			},
 		}
@@ -622,6 +588,41 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 		fmt.Println(i, r)
 	}
 	return c_t
+}
+
+func report_Bank_Last_FiveNumbers(bot *linebot.Client, event *linebot.Event, report string) {
+
+	split := strings.Split(report, "\n")
+	report_map := make(map[string]string)
+
+	for _, r := range split {
+		if strings.Contains(r, ":") {
+			arr := strings.Split(r, ":")
+			if strings.TrimSpace(arr[1]) != "" {
+				report_map[strings.TrimSpace(arr[0])] = strings.TrimSpace(arr[1])
+			}
+			// if arr[1] != "" {
+			// 	info_map[arr[0]] = arr[1]
+			// }
+		}
+	}
+	fmt.Println("report map ", report_map)
+	sn := report_map["訂單編號"]
+	numbers := report_map["回報帳號後5碼"]
+	o, _ := order.GetOrderByOrderSN(sn)
+	if len(strings.TrimSpace(numbers)) != 5 {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("回報帳號有誤，請重新回報")).Do()
+
+	} else {
+		o.BankLast5Num = numbers
+		o.BankConfirmStatus = order.BankStatus_UnConfirm
+		err := order.UpdateOrder(o)
+		if err != nil {
+			fmt.Println("Update order bankstatus failed")
+		}
+		reply_User_All_Orders(bot, event)
+	}
+
 }
 
 func get_string_data(str string) string {
