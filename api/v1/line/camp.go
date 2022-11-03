@@ -477,6 +477,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 		_, _, info := parase_Order_Info(p_d.Data)
 
 		amount, _ := strconv.Atoi(info.Amount)
+
 		product, err := product.GetIdByCampRoundName(info.Region)
 		paymenttotal, _ := strconv.Atoi(info.PaymentTotal)
 		var order_sn string
@@ -485,43 +486,48 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 		}
 		search_time := parse_string_to_SearchTime(info.Start, info.End)
 
-		var check_insert_success bool
-		var index int
-		deadline := time.Now().AddDate(0, 0, 3)
+		if !search_time.Check_Remain_Num_Enough(amount, info.Region) {
+			reply_mes = "剩餘數量不足，請重新訂位"
 
-		for !check_insert_success {
-			order_sn = order.GenerateOrderSN(index)
-			var tmp_order = order.Order{
-				OrderSN:           order_sn,
-				UserID:            event.Source.UserID,
-				UserName:          info.UserName,
-				PhoneNumber:       info.PhoneNumber,
-				ProductId:         int(product.ID),
-				Amount:            amount,
-				PaymentTotal:      paymenttotal,
-				Checkin:           search_time.Start,
-				Checkout:          search_time.End,
-				ReportDeadLine:    deadline,
-				BankConfirmStatus: order.BankStatus_Unreport,
+		} else {
+
+			var check_insert_success bool
+			var index int
+			deadline := time.Now().AddDate(0, 0, 3)
+
+			for !check_insert_success {
+				order_sn = order.GenerateOrderSN(index)
+				var tmp_order = order.Order{
+					OrderSN:           order_sn,
+					UserID:            event.Source.UserID,
+					UserName:          info.UserName,
+					PhoneNumber:       info.PhoneNumber,
+					ProductId:         int(product.ID),
+					Amount:            amount,
+					PaymentTotal:      paymenttotal,
+					Checkin:           search_time.Start,
+					Checkout:          search_time.End,
+					ReportDeadLine:    deadline,
+					BankConfirmStatus: order.BankStatus_Unreport,
+				}
+
+				err = tmp_order.Add()
+
+				// order, _ := order.GetAllOrder()
+				// fmt.Println("Order", order)
+				if err != nil {
+					log.Println("新增訂單失敗", err)
+					index++
+					reply_mes = "訂位失敗，請重新查詢"
+				} else {
+					check_insert_success = true
+					search_time.Update_Stock_Remain_by_Order(tmp_order)
+
+				}
 			}
-
-			err = tmp_order.Add()
-
-			// order, _ := order.GetAllOrder()
-			// fmt.Println("Order", order)
-			if err != nil {
-				log.Println("新增訂單失敗", err)
-				index++
-				reply_mes = "訂位失敗，請重新查詢"
-			} else {
-				check_insert_success = true
-				search_time.Update_Stock_Remain_by_Order(tmp_order)
-
-			}
+			remit := fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", deadline.Format("2006-01-02"), info.PaymentTotal)
+			reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", order_sn, info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
 		}
-		remit := fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", deadline.Format("2006-01-02"), info.PaymentTotal)
-		reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", order_sn, info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
-
 	}
 	fmt.Println("Relpy_message", reply_mes)
 
@@ -564,7 +570,7 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 			status_mes = fmt.Sprintf("狀態:%s(後五碼:%s) ", o.BankConfirmStatus, o.BankLast5Num)
 
 		}
-		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
+		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d\n", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
 		reply_mes := fmt.Sprintf("%s訂位者姓名:%s\n電話:%s\n訂位數量:%d\n%s", title, o.UserName, o.PhoneNumber, o.Amount, remit)
 		fmt.Println("reply_mes")
 		fmt.Println(reply_mes)
@@ -581,6 +587,10 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 					Data:        fmt.Sprintf("action=report&data=%s", o.OrderSN),
 					InputOption: linebot.InputOptionOpenKeyboard,
 					FillInText:  fmt.Sprintf("*回報資訊*\n\n訂單編號:%s\n回報帳號後5碼:", o.OrderSN),
+				},
+				&linebot.PostbackAction{
+					Label: "取消訂單",
+					Data:  fmt.Sprintf("action=order&type=canceol&data=%s", o.OrderSN),
 				},
 			},
 		}
