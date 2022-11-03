@@ -33,7 +33,7 @@ type BankStatus string
 
 var (
 	BankStatus_Unreport  BankStatus = "尚未回報後五碼"
-	BankStatus_UnConfirm BankStatus = "等待營主確認中"
+	BankStatus_UnConfirm BankStatus = "營主確認中"
 	BankStatus_Confirm   BankStatus = "營主已確認"
 )
 

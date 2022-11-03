@@ -561,7 +561,7 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 		if o.BankConfirmStatus == order.BankStatus_Unreport {
 			status_mes = fmt.Sprintf("狀態:%s (點此回報)", o.BankConfirmStatus)
 		} else {
-			status_mes = fmt.Sprintf("狀態:%s 後五碼:%s (點此修改)", o.BankConfirmStatus, o.BankLast5Num)
+			status_mes = fmt.Sprintf("狀態:%s(後五碼:%s) ", o.BankConfirmStatus, o.BankLast5Num)
 
 		}
 		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
