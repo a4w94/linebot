@@ -81,6 +81,7 @@ func CampReply(c *gin.Context) {
 				case strings.Contains(text_trimspace, "訂單資訊"):
 					get_User_Place(text_trimspace, bot, event)
 				case strings.Contains(text_trimspace, "*回報資訊*"):
+					fmt.Println(text_trimspace)
 					report_Bank_Last_FiveNumbers(bot, event, text_trimspace)
 
 				}
@@ -565,8 +566,8 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 		}
 		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
 		reply_mes := fmt.Sprintf("%s訂位者姓名:%s\n電話:%s\n訂位數量:%d\n%s", title, o.UserName, o.PhoneNumber, o.Amount, remit)
-		fmt.Println("reply_mes")
-		fmt.Println(reply_mes)
+		// fmt.Println("reply_mes")
+		// fmt.Println(reply_mes)
 		tmp := linebot.CarouselColumn{
 
 			ImageBackgroundColor: "#000000",
@@ -577,7 +578,7 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 					Label:       status_mes,
 					Data:        fmt.Sprintf("action=report&data=%s", o.OrderSN),
 					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  fmt.Sprintf("*回報資訊*\n訂單編號%s \n----------------------\n回報帳號後5碼: \n", o.OrderSN),
+					FillInText:  fmt.Sprintf("*回報資訊*\n\n訂單編號:%s\n回報帳號後5碼:", o.OrderSN),
 				},
 			},
 		}
