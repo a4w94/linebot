@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"linebot/api/v1/line"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
 	"linebot/internal/model/order"
@@ -19,7 +18,7 @@ func main() {
 	//db.InitDbContext()
 
 	TestData()
-	GetData()
+	//GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)
@@ -124,13 +123,24 @@ func GetData() {
 	// 	fmt.Println(r.UserID, r)
 	// }
 
+	// line.Carousel_Orders(o_s2)
+	// o, err := order.GetOrderByOrderSN("20221103000")
+	// fmt.Println("get", o, err)
+
+	err2 := order.DeleteByOrderSN("20221104000")
+	fmt.Println("err2", err2)
+	// o_s, _ := order.GetAllOrder()
 	o_s2, _ := order.GetOrdersByUserID("U8d3ff666c698729d2de5d62cf4607964")
 	for _, r := range o_s2 {
 		fmt.Println(r)
 	}
+	// for _, r := range o_s {
+	// 	fmt.Println("o_s", r.DeletedAt)
+	// }
 
-	line.Carousel_Orders(o_s2)
-	// stocks, _ := stock.GetAll()
+	o2, err := order.GetOrderByOrderSN("20221104000")
+	fmt.Println("get2", o2, err)
+	// // stocks, _ := stock.GetAll()
 	// for _, s := range stocks {
 	// 	fmt.Println(s)
 	// }

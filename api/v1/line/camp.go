@@ -123,7 +123,10 @@ func CampReply(c *gin.Context) {
 				switch data.Type {
 				case "place":
 					data.reply_Order_Confirm(bot, event)
-
+				case "cancel":
+					data.user_Cancel_Order_Confirm(bot, event)
+				case "cancel_confirm":
+					data.user_Cancel_Order(bot, event)
 				}
 
 			}
@@ -493,6 +496,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 
 			var check_insert_success bool
 			var index int
+			var order_mes string
 			deadline := time.Now().AddDate(0, 0, 3)
 
 			for !check_insert_success {
@@ -522,11 +526,12 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 				} else {
 					check_insert_success = true
 					search_time.Update_Stock_Remain_by_Order(tmp_order)
-
+					order_mes = tmp_order.Reply_Order_Message()
 				}
 			}
 			remit := fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", deadline.Format("2006-01-02"), info.PaymentTotal)
-			reply_mes = fmt.Sprintf("以下是您的訂位資訊 \n----------------------\n訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s\n----------------------\n%s", order_sn, info.Region, info.Start, info.End, info.PaymentTotal, info.UserName, info.PhoneNumber, info.Amount, remit)
+
+			reply_mes = fmt.Sprintf("以下是您的訂位資訊\n----------------------\n%s\n----------------------\n%s", order_mes, remit)
 		}
 	}
 	fmt.Println("Relpy_message", reply_mes)
@@ -590,7 +595,7 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 				},
 				&linebot.PostbackAction{
 					Label: "取消訂單",
-					Data:  fmt.Sprintf("action=order&type=canceol&data=%s", o.OrderSN),
+					Data:  fmt.Sprintf("action=order&type=cancel&data=%s", o.OrderSN),
 				},
 			},
 		}
@@ -637,6 +642,47 @@ func report_Bank_Last_FiveNumbers(bot *linebot.Client, event *linebot.Event, rep
 		reply_User_All_Orders(bot, event)
 	}
 
+}
+
+func (p_d ParseData) user_Cancel_Order_Confirm(bot *linebot.Client, event *linebot.Event) {
+	sn := p_d.Data
+	o, _ := order.GetOrderByOrderSN(sn)
+	fmt.Println("Canel order", o, ".")
+	order_mes := o.Reply_Order_Message()
+	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("Cancel Order", &linebot.ConfirmTemplate{
+		Text: fmt.Sprintf("確認取消此訂單?\n%s", order_mes),
+		Actions: []linebot.TemplateAction{
+			&linebot.PostbackAction{
+				Label: "是",
+				Data:  fmt.Sprintf("action=order&type=cancel_confirm&status=yes&data=%s", sn),
+				Text:  "是",
+			},
+			&linebot.PostbackAction{
+				Label: "否",
+				Data:  "action=order&type=cancel_confirm&status=no",
+				Text:  "否",
+			},
+		},
+	})).Do()
+
+}
+
+func (p_d ParseData) user_Cancel_Order(bot *linebot.Client, event *linebot.Event) {
+	var reply_mes string
+	switch p_d.Status {
+	case "no":
+		reply_mes = "取消訂單失敗，請重新操作"
+	case "yes":
+		o, _ := order.GetOrderByOrderSN(p_d.Data)
+		err := o.Delete()
+		if err != nil {
+			log.Println("delete order failed", err)
+		} else {
+			reply_mes = "取消訂單成功"
+
+		}
+	}
+	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply_mes)).Do()
 }
 
 func get_string_data(str string) string {

@@ -1,9 +1,9 @@
 package order
 
 import (
-	"database/sql"
 	"fmt"
 	"linebot/internal/config/db"
+	"linebot/internal/model/product"
 	"math"
 	"strings"
 	"time"
@@ -12,13 +12,14 @@ import (
 )
 
 type Order struct {
-	OrderSN           string `gorm:"primaryKey"`
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	DeletedAt         sql.NullTime `gorm:"index"`
-	UserID            string       `gorm:"comment:登記者ID"`
-	UserName          string       `gorm:"comment:登記者名字"`
-	PhoneNumber       string       `gorm:"comment:登記者電話"`
+	gorm.Model
+	OrderSN string
+	// CreatedAt         time.Time
+	// UpdatedAt         time.Time
+	// DeletedAt         time.Time
+	UserID            string `gorm:"comment:登記者ID"`
+	UserName          string `gorm:"comment:登記者名字"`
+	PhoneNumber       string `gorm:"comment:登記者電話"`
 	ProductId         int
 	Amount            int
 	PaymentTotal      int
@@ -37,11 +38,17 @@ var (
 	BankStatus_Confirm   BankStatus = "營主已確認"
 )
 
-func (order Order) Add() error {
-	order.CreatedAt = time.Now()
-	order.UpdatedAt = time.Now()
+func (order *Order) Add() error {
+
 	return db.BeginTransaction(db.DB, func(tx *gorm.DB) error {
 		return tx.Create(&order).Error
+	})
+}
+
+func (order *Order) Delete() error {
+
+	return db.BeginTransaction(db.DB, func(tx *gorm.DB) error {
+		return tx.Delete(&order).Error
 	})
 }
 
@@ -63,11 +70,13 @@ func GetOrdersByUserID(user_id string) ([]Order, error) {
 func GetOrderByOrderSN(order_sn string) (Order, error) {
 	var GetOrder Order
 	err := db.DB.Where("order_sn=?", order_sn).Find(&GetOrder).Error
+
 	return GetOrder, err
 }
+
 func DeleteByOrderSN(order_sn string) error {
-	var order Order
-	return db.DB.Where("order_sn<>?", order_sn).Delete(&order).Error
+
+	return db.DB.Delete(&Order{}, order_sn).Error
 
 }
 
@@ -95,4 +104,12 @@ func GenerateOrderSN(i int) (SN string) {
 	}
 
 	return SN
+}
+
+//訂單data資訊回覆
+func (o Order) Reply_Order_Message() string {
+	p, _ := product.GetById(int64(o.ProductId))
+	reply_mes := fmt.Sprintf("訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d", o.OrderSN, p.CampRoundName, o.Checkin, o.Checkout, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount)
+
+	return reply_mes
 }
