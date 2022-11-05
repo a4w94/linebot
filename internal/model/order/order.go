@@ -78,7 +78,7 @@ func GetOrderByOrderSN(order_sn string) (Order, error) {
 	return GetOrder, err
 }
 
-func CheckOrderSN_Unexist(order_sn string) bool {
+func CheckOrderSN_exist(order_sn string) bool {
 	var GetOrder []Order
 	err := db.DB.Where("order_sn<>?", order_sn).Find(&GetOrder).Error
 
@@ -88,10 +88,10 @@ func CheckOrderSN_Unexist(order_sn string) bool {
 	}
 
 	if len(GetOrder) == 0 {
-		return true
+		return false
 	}
 
-	return false
+	return true
 }
 
 func DeleteByOrderSN(order_sn string) error {
@@ -136,6 +136,10 @@ func GenerateOrderSN(id int) (SN string) {
 
 		last_num := strconv.Itoa(id)
 		SN = fmt.Sprintf("%s%s", SN, last_num)
+
+		if !CheckOrderSN_exist(SN) {
+			check_unexist = true
+		}
 
 	}
 	return SN

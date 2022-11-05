@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
+	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/internal/route"
@@ -114,6 +115,8 @@ func GetData() {
 	fmt.Println(start)
 	s, err := stock.GetStocks_By_ID_and_DateRange(1, start, end)
 	fmt.Println(err, s)
+
+	fmt.Println(order.GenerateOrderSN(1))
 	// s, err := stock.GetStocks_By_ID_and_DateRange(1, start, end)
 	// for _, r := range s {
 	// 	fmt.Println(r)
