@@ -27,6 +27,7 @@ type ParseData struct {
 }
 
 type Order_Info struct {
+	Order_SN     string `tag:"訂單編號"`
 	Region       string `tag:"區域"`
 	Start        string `tag:"起始日期"`
 	End          string `tag:"結束日期"`
@@ -176,7 +177,11 @@ func Is_Name_Exist(name string) (product.Product, bool) {
 //搜尋剩餘營位
 func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time) {
 	var c_t []*linebot.CarouselColumn
-	camp_searchs := t.SearchRemainCamp_ALL()
+	camp_searchs, err := t.SearchRemainCamp_ALL()
+
+	if err != nil {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("您搜尋的區間尚未開放，請重新查詢")).Do()
+	}
 	// fmt.Println("input search time ", t)
 	// for i, r := range camp_searchs {
 	// 	fmt.Println(i, ":", r.Stocks)
@@ -403,7 +408,10 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 						return false, "訂位數量不得為零,請重新訂位", Order_Info{}
 					}
 					//fmt.Println("s_t", s_t)
-					if !s_t.Check_Remain_Num_Enough(num, tmp.Region) {
+					if ok, err := s_t.Check_Remain_Num_Enough(num, tmp.Region); !ok {
+						if err != nil {
+							return false, "搜尋區間有誤，請重新查詢", Order_Info{}
+						}
 						return false, "剩餘數量不足,請重新訂位", Order_Info{}
 					} else {
 						tmp.Amount = v
@@ -421,7 +429,9 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	pay *= amount
 	tmp.PaymentTotal = strconv.Itoa(pay)
 
-	order_info := fmt.Sprintf("確認訂位資訊 \n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s", tmp.Region, tmp.Start, tmp.End, tmp.PaymentTotal, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
+	tmp.Order_SN = order.GenerateOrderSN(int(p.ID))
+
+	order_info := fmt.Sprintf("確認訂位資訊\n訂單編號%s\n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s", tmp.Order_SN, tmp.Region, tmp.Start, tmp.End, tmp.PaymentTotal, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
 	//fmt.Println("order info", order_info)
 	return true, order_info, tmp
 }
@@ -484,52 +494,51 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 
 		product, err := product.GetIdByCampRoundName(info.Region)
 		paymenttotal, _ := strconv.Atoi(info.PaymentTotal)
-		var order_sn string
+
 		if err != nil {
 			fmt.Println("get id failed")
 		}
 		search_time := parse_string_to_SearchTime(info.Start, info.End)
 
-		if !search_time.Check_Remain_Num_Enough(amount, info.Region) {
+		if ok, err := search_time.Check_Remain_Num_Enough(amount, info.Region); !ok {
+			if err != nil {
+				reply_mes = "搜尋區間有誤，請重新訂位"
+			}
 			reply_mes = "剩餘數量不足，請重新訂位"
 
 		} else {
 
-			var check_insert_success bool
-			var index int
 			var order_mes string
 			deadline := time.Now().AddDate(0, 0, 3)
 
-			for !check_insert_success {
-				order_sn = order.GenerateOrderSN(index)
-				var tmp_order = order.Order{
-					OrderSN:        order_sn,
-					UserID:         event.Source.UserID,
-					UserName:       info.UserName,
-					PhoneNumber:    info.PhoneNumber,
-					ProductId:      int(product.ID),
-					Amount:         amount,
-					PaymentTotal:   paymenttotal,
-					Checkin:        search_time.Start,
-					Checkout:       search_time.End,
-					ReportDeadLine: deadline,
-					ConfirmStatus:  order.BankStatus_Unreport,
-				}
-
-				err = tmp_order.Add()
-
-				// order, _ := order.GetAllOrder()
-				// fmt.Println("Order", order)
-				if err != nil {
-					log.Println("新增訂單失敗", err)
-					index++
-					reply_mes = "訂位失敗，請重新查詢"
-				} else {
-					check_insert_success = true
-					search_time.Update_Stock_Remain_by_Order(tmp_order)
-					order_mes = tmp_order.Reply_Order_Message()
-				}
+			var tmp_order = order.Order{
+				OrderSN:        info.Order_SN,
+				UserID:         event.Source.UserID,
+				UserName:       info.UserName,
+				PhoneNumber:    info.PhoneNumber,
+				ProductId:      int(product.ID),
+				Amount:         amount,
+				PaymentTotal:   paymenttotal,
+				Checkin:        search_time.Start,
+				Checkout:       search_time.End,
+				ReportDeadLine: deadline,
+				ConfirmStatus:  order.BankStatus_Unreport,
 			}
+
+			err = tmp_order.Add()
+
+			// order, _ := order.GetAllOrder()
+			// fmt.Println("Order", order)
+			if err != nil {
+				log.Println("新增訂單失敗", err)
+
+				reply_mes = "訂位失敗，請重新查詢"
+			} else {
+
+				search_time.Update_Stock_Remain_by_Order(tmp_order)
+				order_mes = tmp_order.Reply_Order_Message()
+			}
+
 			remit := fmt.Sprintf("請於%s 23:59前完成匯款並於 *我的訂單* 回報帳號後5碼\n銀行代號: 822\n銀行名稱: 中國信託商業銀行\n匯款帳號: 0342523515\n匯款金額: %s\n", deadline.Format("2006-01-02"), info.PaymentTotal)
 
 			reply_mes = fmt.Sprintf("以下是您的訂位資訊\n----------------------\n%s\n----------------------\n%s", order_mes, remit)
@@ -692,20 +701,26 @@ func (p_d ParseData) user_Cancel_Order(bot *linebot.Client, event *linebot.Event
 	case "yes":
 		o, _ := order.GetOrderByOrderSN(sn)
 		num := o.Amount
-		stocks, _ := stock.GetStocks_By_ID_and_DateRange(uint(o.ProductId), o.Checkin, o.Checkout)
-		for i := range stocks {
-			stocks[i].RemainNum += num
-			err := stocks[i].UpdateStock()
-			if err != nil {
-				log.Println("刪除訂單 回復商品數量失敗")
-			}
-		}
-		err := o.Delete()
-		if err != nil {
-			log.Println("delete order failed", err)
-		} else {
-			reply_mes = "取消訂單成功"
+		stocks, err := stock.GetStocks_By_ID_and_DateRange(uint(o.ProductId), o.Checkin, o.Checkout)
 
+		if err != nil {
+			fmt.Printf("err: %v\n", err)
+		} else {
+			for i := range stocks {
+				stocks[i].RemainNum += num
+				err := stocks[i].UpdateStock()
+				if err != nil {
+					log.Println("刪除訂單 回復商品數量失敗")
+				}
+			}
+
+			err = o.Delete()
+			if err != nil {
+				log.Println("delete order failed", err)
+			} else {
+				reply_mes = "取消訂單成功"
+
+			}
 		}
 	}
 	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply_mes)).Do()

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
-	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/internal/route"
@@ -18,7 +17,7 @@ func main() {
 	//db.InitDbContext()
 
 	TestData()
-	//GetData()
+	GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)
@@ -53,7 +52,7 @@ func TestData() {
 
 	t, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 4; i++ {
 		t = t.AddDate(0, 0, 1)
 		var r_n = 5
 
@@ -110,13 +109,16 @@ func TestData() {
 
 func GetData() {
 
-	// var o = order.Order{
-	// 	OrderSN:   "dasfe123",
-	// 	Amount:    1,
-	// 	ProductId: 2,
-	// 	UserID:    "U8d3ff666c698729d2de5d62cf4607964",
+	start := time.Now()
+	end := start.AddDate(0, 0, 1)
+	fmt.Println(start)
+	s, err := stock.GetStocks_By_ID_and_DateRange(1, start, end)
+	fmt.Println(err, s)
+	// s, err := stock.GetStocks_By_ID_and_DateRange(1, start, end)
+	// for _, r := range s {
+	// 	fmt.Println(r)
 	// }
-	// o.Add()
+	// fmt.Println(err)
 
 	// o_s, _ := order.GetAllOrder()
 	// for _, r := range o_s {
@@ -127,19 +129,6 @@ func GetData() {
 	// o, err := order.GetOrderByOrderSN("20221103000")
 	// fmt.Println("get", o, err)
 
-	err2 := order.DeleteByOrderSN("20221104000")
-	fmt.Println("err2", err2)
-	// o_s, _ := order.GetAllOrder()
-	o_s2, _ := order.GetOrdersByUserID("U8d3ff666c698729d2de5d62cf4607964")
-	for _, r := range o_s2 {
-		fmt.Println(r)
-	}
-	// for _, r := range o_s {
-	// 	fmt.Println("o_s", r.DeletedAt)
-	// }
-
-	o2, err := order.GetOrderByOrderSN("20221104000")
-	fmt.Println("get2", o2, err)
 	// // stocks, _ := stock.GetAll()
 	// for _, s := range stocks {
 	// 	fmt.Println(s)

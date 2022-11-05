@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"linebot/internal/config/db"
 	"linebot/internal/model/product"
-	"math"
+	"log"
+	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,11 +14,10 @@ import (
 )
 
 type Order struct {
-	gorm.Model
-	OrderSN string `gorm:"primaryKey"`
-	// CreatedAt         time.Time
-	// UpdatedAt         time.Time
-	// DeletedAt         time.Time
+	OrderSN        string `gorm:"primaryKey"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      time.Time
 	UserID         string `gorm:"comment:登記者ID"`
 	UserName       string `gorm:"comment:登記者名字"`
 	PhoneNumber    string `gorm:"comment:登記者電話"`
@@ -40,6 +41,8 @@ var (
 )
 
 func (order *Order) Add() error {
+	order.CreatedAt = time.Now()
+	order.UpdatedAt = time.Now()
 
 	return db.BeginTransaction(db.DB, func(tx *gorm.DB) error {
 		return tx.Create(&order).Error
@@ -75,6 +78,22 @@ func GetOrderByOrderSN(order_sn string) (Order, error) {
 	return GetOrder, err
 }
 
+func CheckOrderSN_Unexist(order_sn string) bool {
+	var GetOrder []Order
+	err := db.DB.Where("order_sn<>?", order_sn).Find(&GetOrder).Error
+
+	if err != nil {
+		log.Println("when check order sn ,get order failed")
+		return false
+	}
+
+	if len(GetOrder) == 0 {
+		return true
+	}
+
+	return false
+}
+
 func DeleteByOrderSN(order_sn string) error {
 
 	return db.DB.Delete(&Order{}, order_sn).Error
@@ -87,23 +106,38 @@ func UpdateOrder(order Order) error {
 	})
 }
 
-func GenerateOrderSN(i int) (SN string) {
-	t := time.Now().Format("2006-01-02")
-	s_arr := strings.Split(t, "-")
-	for _, r := range s_arr {
-		SN = fmt.Sprintf("%s%s", SN, r)
-	}
+func GenerateOrderSN(id int) (SN string) {
 
-	for k := 1; k <= 3; k++ {
-		if i < int(math.Pow10(k)) {
-			for n := 0; n < 3-k; n++ {
-				SN = fmt.Sprintf("%s%d", SN, 0)
-			}
-			SN = fmt.Sprintf("%s%d", SN, i)
-			break
+	var check_unexist bool
+
+	for !check_unexist {
+		rand.Seed(time.Now().Unix())
+
+		//產生字首
+		for i := 0; i < 2; i++ {
+			arr := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+			seed := rand.Intn(len(arr))
+			SN = fmt.Sprintf("%s%s", SN, arr[seed])
 		}
-	}
 
+		//日期
+		t := time.Now().Format("2006-01-02")
+		s_arr := strings.Split(t, "-")
+		SN = fmt.Sprintf("%s%s%s", SN, s_arr[1], s_arr[2])
+
+		var r int
+
+		for r <= 10 {
+			r = rand.Intn(1000)
+		}
+
+		r_s := strconv.Itoa(r)
+		SN = fmt.Sprintf("%s%s", SN, r_s)
+
+		last_num := strconv.Itoa(id)
+		SN = fmt.Sprintf("%s%s", SN, last_num)
+
+	}
 	return SN
 }
 

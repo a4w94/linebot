@@ -15,9 +15,9 @@ type RemainCamp struct {
 	PaymentTotal    int
 }
 
-func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
+func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp, err error) {
 	//fmt.Println("all time:", t)
-	var err error
+
 	products, err := product.GetAll()
 	if err != nil {
 		log.Println("Get Products Failed", err)
@@ -25,20 +25,25 @@ func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp) {
 
 	//fmt.Println("開始搜尋全部剩餘營位")
 	for _, p := range products {
-		tmp := t.SearchRemainCamp(p)
+		tmp, err := t.SearchRemainCamp(p)
+		if err != nil {
+			return r_c, err
+		}
 
 		r_c = append(r_c, tmp)
 	}
 
-	return r_c
+	return r_c, err
 }
 
-func (t Search_Time) SearchRemainCamp(p product.Product) (tmp RemainCamp) {
+func (t Search_Time) SearchRemainCamp(p product.Product) (tmp RemainCamp, err error) {
 
 	tmp.Product = p
-	tmp.Stocks, err = stock.GetStocks_By_ID_and_DateRange(tmp.Product.ID, t.Start, t.End)
-	if err != nil {
-		log.Println("GetStocks Failed", err)
+	var err1 error
+	tmp.Stocks, err1 = stock.GetStocks_By_ID_and_DateRange(tmp.Product.ID, t.Start, t.End)
+	if err1 != nil {
+		log.Println("GetStocks Failed", err1)
+		return tmp, err1
 	}
 
 	tmp.PaymentTotal = t.camp_PaymentTotal(p)
@@ -54,7 +59,7 @@ func (t Search_Time) SearchRemainCamp(p product.Product) (tmp RemainCamp) {
 
 	//加總總金額
 
-	return tmp
+	return tmp, err
 }
 
 func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
@@ -72,16 +77,21 @@ func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
 	return paymentTotal
 }
 
-func (t Search_Time) Check_Remain_Num_Enough(input_order_num int, region_name string) bool {
+func (t Search_Time) Check_Remain_Num_Enough(input_order_num int, region_name string) (bool, error) {
 
 	p, err := product.GetIdByCampRoundName(region_name)
 	if err != nil {
 		log.Fatal("check remain get product failed")
 	}
 
-	remain := t.SearchRemainCamp(p).RemainMinAmount
+	r, err := t.SearchRemainCamp(p)
+	if err != nil {
+		return false, err
+	}
 
-	return input_order_num <= remain
+	remain := r.RemainMinAmount
+
+	return input_order_num <= remain, err
 
 }
 
