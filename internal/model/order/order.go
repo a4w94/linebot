@@ -109,7 +109,9 @@ func GenerateOrderSN(i int) (SN string) {
 //訂單data資訊回覆
 func (o Order) Reply_Order_Message() string {
 	p, _ := product.GetById(int64(o.ProductId))
-	reply_mes := fmt.Sprintf("訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d", o.OrderSN, p.CampRoundName, o.Checkin, o.Checkout, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount)
+	start := o.Checkin.Format("2016-01-02")
+	end := o.Checkout.Format("2016-01-02")
+	reply_mes := fmt.Sprintf("訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d", o.OrderSN, p.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount)
 
 	return reply_mes
 }

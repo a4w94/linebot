@@ -48,7 +48,7 @@ func GetStocks_By_ID_and_DateRange(pid uint, start, end time.Time) ([]Stock, err
 	return stocks, err
 }
 
-func UpdateStock(stock Stock) error {
+func (stock *Stock) UpdateStock() error {
 	return db.BeginTransaction(db.DB, func(tx *gorm.DB) error {
 		return tx.Save(&stock).Error
 	})

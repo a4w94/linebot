@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"linebot/internal/model/order"
 	"linebot/internal/model/product"
+	"linebot/internal/model/stock"
 	"log"
 	"reflect"
 	"strconv"
@@ -669,11 +670,21 @@ func (p_d ParseData) user_Cancel_Order_Confirm(bot *linebot.Client, event *lineb
 
 func (p_d ParseData) user_Cancel_Order(bot *linebot.Client, event *linebot.Event) {
 	var reply_mes string
+	sn := p_d.Data
 	switch p_d.Status {
 	case "no":
 		reply_mes = "取消訂單失敗，請重新操作"
 	case "yes":
-		o, _ := order.GetOrderByOrderSN(p_d.Data)
+		o, _ := order.GetOrderByOrderSN(sn)
+		num := o.Amount
+		stocks, _ := stock.GetStocks_By_ID_and_DateRange(uint(o.ProductId), o.Checkin, o.Checkout)
+		for i := range stocks {
+			stocks[i].RemainNum += num
+			err := stocks[i].UpdateStock()
+			if err != nil {
+				log.Println("刪除訂單 回復商品數量失敗")
+			}
+		}
 		err := o.Delete()
 		if err != nil {
 			log.Println("delete order failed", err)
