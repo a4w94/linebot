@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"linebot/api/v1/line"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
-	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/internal/route"
@@ -110,13 +110,13 @@ func TestData() {
 
 func GetData() {
 
-	start := time.Now()
-	end := start.AddDate(0, 0, 1)
-	fmt.Println(start)
-	s, err := stock.GetStocks_By_ID_and_DateRange(1, start, end)
-	fmt.Println(err, s)
+	start, _ := time.Parse("2006-01-02", "2022-11-08")
+	end, _ := time.Parse("2006-01-02", "2022-11-08")
+	var t line.Search_Time
+	t.Start = start
+	t.End = end
+	fmt.Println(stock.GetStocks_By_ID_and_DateRange(1, start, end))
 
-	fmt.Println(order.GenerateOrderSN(1))
 	// s, err := stock.GetStocks_By_ID_and_DateRange(1, start, end)
 	// for _, r := range s {
 	// 	fmt.Println(r)

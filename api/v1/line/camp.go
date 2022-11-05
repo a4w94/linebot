@@ -301,10 +301,11 @@ func reply_date_limit(bot *linebot.Client, event *linebot.Event) {
 		switch {
 		case !value.Start.IsZero() && value.End.IsZero():
 			date := value.Start.Format("2006-01-02")
+			end := value.Start.AddDate(0, 0, 1).Format("2006-01-02")
 			start_time = fmt.Sprintf("起始日期 %s", date)
 			end_time = "結束日期 "
-			end_init = date
-			end_min = date
+			end_init = end
+			end_min = end
 		case value.Start.IsZero() && !value.End.IsZero():
 			date := value.End.Format("2006-01-02")
 			start_time = "起始日期 "
@@ -313,13 +314,15 @@ func reply_date_limit(bot *linebot.Client, event *linebot.Event) {
 		case !value.Start.IsZero() && !value.End.IsZero():
 			date_start := value.Start.Format("2006-01-02")
 			date_end := value.End.Format("2006-01-02")
+			end := value.Start.AddDate(0, 0, 1).Format("2006-01-02")
 
 			start_time = fmt.Sprintf("起始日期 %s", date_start)
 			end_time = fmt.Sprintf("結束日期 %s", date_end)
 
-			end_init = date_start
-			end_min = date_start
-			start_Max = date_end
+			end_init = end
+			end_min = end
+			end_Max = end
+
 		}
 	}
 	bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("訂位日期", &linebot.ButtonsTemplate{

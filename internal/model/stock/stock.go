@@ -2,6 +2,7 @@ package stock
 
 import (
 	"errors"
+	"fmt"
 	"linebot/internal/config/db"
 	"linebot/internal/model/product"
 	"log"
@@ -35,12 +36,6 @@ func GetAll() ([]Stock, error) {
 	return Stocks, err
 }
 
-func GetStockByDate(date time.Time) (Stock, error) {
-	var stock Stock
-	err := db.DB.Where("date=?", date).Find(&stock).Error
-	return stock, err
-}
-
 func GetStocks_By_ID_and_DateRange(pid uint, start, end time.Time) ([]Stock, error) {
 
 	var stocks []Stock
@@ -48,8 +43,12 @@ func GetStocks_By_ID_and_DateRange(pid uint, start, end time.Time) ([]Stock, err
 	tmp_time = start
 	var err error
 	for tmp_time != end.AddDate(0, 0, 1) {
+		fmt.Println("tmp time", tmp_time)
 		var s []Stock
-		err := db.DB.Where("product_id=? AND date=?", pid, tmp_time).Find(&s).Error
+
+		tmp_time_last := tmp_time.Add(time.Hour*23 + time.Minute*59 + time.Second*59)
+		err := db.DB.Where("product_id=? AND date BETWEEN ? AND ?", pid, tmp_time, tmp_time_last).Find(&s).Error
+		fmt.Println(s)
 		if err != nil {
 			log.Println("GetStocks_By_ID_and_DateRange failed")
 		}
