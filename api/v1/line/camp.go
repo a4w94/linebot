@@ -503,17 +503,17 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 			for !check_insert_success {
 				order_sn = order.GenerateOrderSN(index)
 				var tmp_order = order.Order{
-					OrderSN:           order_sn,
-					UserID:            event.Source.UserID,
-					UserName:          info.UserName,
-					PhoneNumber:       info.PhoneNumber,
-					ProductId:         int(product.ID),
-					Amount:            amount,
-					PaymentTotal:      paymenttotal,
-					Checkin:           search_time.Start,
-					Checkout:          search_time.End,
-					ReportDeadLine:    deadline,
-					BankConfirmStatus: order.BankStatus_Unreport,
+					OrderSN:        order_sn,
+					UserID:         event.Source.UserID,
+					UserName:       info.UserName,
+					PhoneNumber:    info.PhoneNumber,
+					ProductId:      int(product.ID),
+					Amount:         amount,
+					PaymentTotal:   paymenttotal,
+					Checkin:        search_time.Start,
+					Checkout:       search_time.End,
+					ReportDeadLine: deadline,
+					ConfirmStatus:  order.BankStatus_Unreport,
 				}
 
 				err = tmp_order.Add()
@@ -570,11 +570,39 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 		camp, _ := product.GetById(int64(o.ProductId))
 		var remit string
 		var status_mes string
-		if o.BankConfirmStatus == order.BankStatus_Unreport {
-			status_mes = fmt.Sprintf("狀態:%s (點此回報)", o.BankConfirmStatus)
+		var actions []linebot.TemplateAction
+		if o.ConfirmStatus == order.BankStatus_Unreport {
+			status_mes = fmt.Sprintf("狀態:%s (點此回報)", o.ConfirmStatus)
+			actions = []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label:       status_mes,
+					Data:        fmt.Sprintf("action=report&data=%s", o.OrderSN),
+					InputOption: linebot.InputOptionOpenKeyboard,
+					FillInText:  fmt.Sprintf("*回報資訊*\n\n訂單編號:%s\n回報帳號後5碼:", o.OrderSN),
+				},
+				&linebot.PostbackAction{
+					Label: "取消訂單",
+					Data:  fmt.Sprintf("action=order&type=cancel&data=%s", o.OrderSN),
+				},
+			}
+		} else if o.ConfirmStatus == order.Order_Cancel {
+			status_mes = fmt.Sprintf("狀態:%s", o.ConfirmStatus)
+			actions = []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label: status_mes,
+					Data:  "action=cancel_done",
+				},
+			}
 		} else {
-			status_mes = fmt.Sprintf("狀態:%s(後五碼:%s) ", o.BankConfirmStatus, o.BankLast5Num)
-
+			status_mes = fmt.Sprintf("狀態:%s(後五碼:%s) ", o.ConfirmStatus, o.BankLast5Num)
+			actions = []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label:       status_mes,
+					Data:        fmt.Sprintf("action=report&data=%s", o.OrderSN),
+					InputOption: linebot.InputOptionOpenKeyboard,
+					FillInText:  fmt.Sprintf("*回報資訊*\n\n訂單編號:%s\n回報帳號後5碼:", o.OrderSN),
+				},
+			}
 		}
 		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d\n", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
 		reply_mes := fmt.Sprintf("%s訂位者姓名:%s\n電話:%s\n訂位數量:%d\n%s", title, o.UserName, o.PhoneNumber, o.Amount, remit)
@@ -586,19 +614,8 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
 			ImageBackgroundColor: "#000000",
 
-			Text: reply_mes,
-			Actions: []linebot.TemplateAction{
-				&linebot.PostbackAction{
-					Label:       status_mes,
-					Data:        fmt.Sprintf("action=report&data=%s", o.OrderSN),
-					InputOption: linebot.InputOptionOpenKeyboard,
-					FillInText:  fmt.Sprintf("*回報資訊*\n\n訂單編號:%s\n回報帳號後5碼:", o.OrderSN),
-				},
-				&linebot.PostbackAction{
-					Label: "取消訂單",
-					Data:  fmt.Sprintf("action=order&type=cancel&data=%s", o.OrderSN),
-				},
-			},
+			Text:    reply_mes,
+			Actions: actions,
 		}
 		c_t = append(c_t, &tmp)
 	}
@@ -635,7 +652,7 @@ func report_Bank_Last_FiveNumbers(bot *linebot.Client, event *linebot.Event, rep
 
 	} else {
 		o.BankLast5Num = numbers
-		o.BankConfirmStatus = order.BankStatus_UnConfirm
+		o.ConfirmStatus = order.BankStatus_UnConfirm
 		err := order.UpdateOrder(o)
 		if err != nil {
 			fmt.Println("Update order bankstatus failed")
@@ -656,12 +673,10 @@ func (p_d ParseData) user_Cancel_Order_Confirm(bot *linebot.Client, event *lineb
 			&linebot.PostbackAction{
 				Label: "是",
 				Data:  fmt.Sprintf("action=order&type=cancel_confirm&status=yes&data=%s", sn),
-				Text:  "是",
 			},
 			&linebot.PostbackAction{
 				Label: "否",
 				Data:  "action=order&type=cancel_confirm&status=no",
-				Text:  "否",
 			},
 		},
 	})).Do()

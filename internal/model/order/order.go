@@ -13,29 +13,30 @@ import (
 
 type Order struct {
 	gorm.Model
-	OrderSN string
+	OrderSN string `gorm:"primaryKey"`
 	// CreatedAt         time.Time
 	// UpdatedAt         time.Time
 	// DeletedAt         time.Time
-	UserID            string `gorm:"comment:登記者ID"`
-	UserName          string `gorm:"comment:登記者名字"`
-	PhoneNumber       string `gorm:"comment:登記者電話"`
-	ProductId         int
-	Amount            int
-	PaymentTotal      int
-	Checkin           time.Time
-	Checkout          time.Time
-	ReportDeadLine    time.Time
-	BankLast5Num      string
-	BankConfirmStatus BankStatus
+	UserID         string `gorm:"comment:登記者ID"`
+	UserName       string `gorm:"comment:登記者名字"`
+	PhoneNumber    string `gorm:"comment:登記者電話"`
+	ProductId      int
+	Amount         int
+	PaymentTotal   int
+	Checkin        time.Time
+	Checkout       time.Time
+	ReportDeadLine time.Time
+	BankLast5Num   string
+	ConfirmStatus  Status
 }
 
-type BankStatus string
+type Status string
 
 var (
-	BankStatus_Unreport  BankStatus = "尚未回報後五碼"
-	BankStatus_UnConfirm BankStatus = "營主確認中"
-	BankStatus_Confirm   BankStatus = "營主已確認"
+	BankStatus_Unreport  Status = "尚未回報後五碼"
+	BankStatus_UnConfirm Status = "營主確認中"
+	BankStatus_Confirm   Status = "營主已確認"
+	Order_Cancel         Status = "訂單已取消"
 )
 
 func (order *Order) Add() error {
@@ -109,8 +110,8 @@ func GenerateOrderSN(i int) (SN string) {
 //訂單data資訊回覆
 func (o Order) Reply_Order_Message() string {
 	p, _ := product.GetById(int64(o.ProductId))
-	start := o.Checkin.Format("2016-01-02")
-	end := o.Checkout.Format("2016-01-02")
+	start := o.Checkin.Format("2006-01-02")
+	end := o.Checkout.Format("2006-01-02")
 	reply_mes := fmt.Sprintf("訂單編號: %s\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %d\n----------------------\n訂位者姓名: %s\n電話: %s\n訂位數量: %d", o.OrderSN, p.CampRoundName, start, end, o.PaymentTotal, o.UserName, o.PhoneNumber, o.Amount)
 
 	return reply_mes
