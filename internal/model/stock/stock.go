@@ -42,13 +42,13 @@ func GetStocks_By_ID_and_DateRange(pid uint, start, end time.Time) ([]Stock, err
 	var tmp_time time.Time
 	tmp_time = start
 	var err error
-	for tmp_time != end.AddDate(0, 0, 1) {
+	for tmp_time != end {
 		fmt.Println("tmp time", tmp_time)
 		var s []Stock
 
 		tmp_time_last := tmp_time.Add(time.Hour*23 + time.Minute*59 + time.Second*59)
 		err := db.DB.Where("product_id=? AND date BETWEEN ? AND ?", pid, tmp_time, tmp_time_last).Find(&s).Error
-		fmt.Println(s)
+		fmt.Println("s", s)
 		if err != nil {
 			log.Println("GetStocks_By_ID_and_DateRange failed")
 		}
@@ -59,6 +59,7 @@ func GetStocks_By_ID_and_DateRange(pid uint, start, end time.Time) ([]Stock, err
 		}
 		tmp_time = tmp_time.AddDate(0, 0, 1)
 	}
+	fmt.Println("stocks", stocks, err)
 	return stocks, err
 }
 

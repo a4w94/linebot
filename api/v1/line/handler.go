@@ -1,6 +1,7 @@
 package line
 
 import (
+	"fmt"
 	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
@@ -16,7 +17,7 @@ type RemainCamp struct {
 }
 
 func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp, err error) {
-	//fmt.Println("all time:", t)
+	fmt.Println("all time:", t)
 
 	products, err := product.GetAll()
 	if err != nil {
@@ -32,6 +33,7 @@ func (t Search_Time) SearchRemainCamp_ALL() (r_c []RemainCamp, err error) {
 
 		r_c = append(r_c, tmp)
 	}
+	fmt.Println("rc", r_c)
 
 	return r_c, err
 }
@@ -64,11 +66,9 @@ func (t Search_Time) SearchRemainCamp(p product.Product) (tmp RemainCamp, err er
 
 func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
 
-	for {
-		if t.Start.Equal(t.End) {
-			paymentTotal += p.Price_Weekday
-			break
-		}
+	for !t.Start.Equal(t.End) {
+
+		paymentTotal += p.Price_Weekday
 
 		paymentTotal += p.Price_Weekday
 		t.Start = t.Start.AddDate(0, 0, 1)
