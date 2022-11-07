@@ -79,19 +79,16 @@ func GetOrderByOrderSN(order_sn string) (Order, error) {
 }
 
 func CheckOrderSN_exist(order_sn string) bool {
-	var GetOrder []Order
-	err := db.DB.Where("order_sn<>?", order_sn).Find(&GetOrder).Error
+	var GetOrder Order
+	err := db.DB.First(&GetOrder, "order_sn = ?", order_sn).Error
 
 	if err != nil {
-		log.Println("when check order sn ,get order failed")
-		return false
-	}
+		log.Println("when check order sn ,get order failed or unexist")
 
-	if len(GetOrder) == 0 {
-		return false
 	}
+	fmt.Println("Getorder", GetOrder)
 
-	return true
+	return GetOrder != Order{}
 }
 
 func DeleteByOrderSN(order_sn string) error {
