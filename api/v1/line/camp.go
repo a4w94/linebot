@@ -432,9 +432,14 @@ func parase_Order_Info(info string) (bool, string, Order_Info) {
 	pay *= amount
 	tmp.PaymentTotal = strconv.Itoa(pay)
 
-	tmp.Order_SN = order.GenerateOrderSN(int(p.ID))
+	if v, ok := info_map["訂單編號"]; ok {
+		tmp.Order_SN = v
+	} else {
+		tmp.Order_SN = order.GenerateOrderSN(int(p.ID))
 
-	order_info := fmt.Sprintf("確認訂位資訊\n訂單編號%s\n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s", tmp.Order_SN, tmp.Region, tmp.Start, tmp.End, tmp.PaymentTotal, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
+	}
+
+	order_info := fmt.Sprintf("確認訂位資訊\n訂單編號:%s\n----------------------\n區域: %s\n起始日期: %s\n結束日期: %s\n總金額: %s\n-----------\n訂位者姓名: %s\n電話: %s\n訂位數量: %s", tmp.Order_SN, tmp.Region, tmp.Start, tmp.End, tmp.PaymentTotal, tmp.UserName, tmp.PhoneNumber, tmp.Amount)
 	//fmt.Println("order info", order_info)
 	return true, order_info, tmp
 }
@@ -471,12 +476,10 @@ func get_User_Place(text string, bot *linebot.Client, event *linebot.Event) {
 					&linebot.PostbackAction{
 						Label: "是",
 						Data:  data_yes,
-						Text:  "是",
 					},
 					&linebot.PostbackAction{
 						Label: "否",
 						Data:  "action=order&type=place&status=no",
-						Text:  "否",
 					},
 				},
 			})).Do()
@@ -487,11 +490,15 @@ func get_User_Place(text string, bot *linebot.Client, event *linebot.Event) {
 
 func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Event) {
 	var reply_mes string
+	var ordersn_exist bool
 
 	if p_d.Status == "no" {
 		reply_mes = "如有需要請重新訂位，謝謝"
 	} else if p_d.Status == "yes" {
+
 		_, _, info := parase_Order_Info(p_d.Data)
+
+		ordersn_exist = order.CheckOrderSN_exist(info.Order_SN)
 
 		amount, _ := strconv.Atoi(info.Amount)
 
@@ -549,8 +556,9 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 	}
 	fmt.Println("Relpy_message", reply_mes)
 
-	bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply_mes)).Do()
-
+	if !ordersn_exist {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(reply_mes)).Do()
+	}
 }
 
 func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
