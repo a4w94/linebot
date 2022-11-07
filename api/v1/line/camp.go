@@ -206,7 +206,7 @@ func Camp_Search_Remain(bot *linebot.Client, event *linebot.Event, t Search_Time
 				},
 			},
 		}
-		fmt.Println(tmp)
+
 		c_t = append(c_t, &tmp)
 	}
 	delete(Search, event.Source.UserID)

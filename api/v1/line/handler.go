@@ -70,7 +70,6 @@ func (t Search_Time) camp_PaymentTotal(p product.Product) (paymentTotal int) {
 
 		paymentTotal += p.Price_Weekday
 
-		paymentTotal += p.Price_Weekday
 		t.Start = t.Start.AddDate(0, 0, 1)
 
 	}
