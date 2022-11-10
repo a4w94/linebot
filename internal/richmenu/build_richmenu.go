@@ -30,11 +30,11 @@ func Build_RichMenu() {
 		DeleteRichMenuAlias(bot, aid_B)
 	}
 
-	//Richmenu_Id_A := CreatRichMenu_A(bot, aid_B)
+	Richmenu_Id_A := CreatRichMenu_A(bot, aid_B)
 
-	//img_path_A := "./internal/richmenu/img/img_A.png"
+	img_path_A := "./internal/richmenu/img/img_A.png"
 
-	//Upload_Img(bot, Richmenu_Id_A, img_path_A)
+	Upload_Img(bot, Richmenu_Id_A, img_path_A)
 
 	Richmenu_Id_B := CreatRichMenu_B(bot, aid_A)
 
@@ -43,6 +43,7 @@ func Build_RichMenu() {
 	Upload_Img(bot, Richmenu_Id_B, img_path_B)
 
 	Set_Default(bot, Richmenu_Id_B)
+	//Set_Manager_RichMenu(bot, "1234", Richmenu_Id_A)
 
 	//CreateRichMenuAlias(bot, aid_A, Richmenu_Id_A)
 	//CreateRichMenuAlias(bot, aid_B, Richmenu_Id_B)
@@ -185,6 +186,13 @@ func Upload_Img(bot *linebot.Client, id, path string) {
 
 func Set_Default(bot *linebot.Client, id string) {
 	if _, err := bot.SetDefaultRichMenu(id).Do(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Set_Manager_RichMenu(bot *linebot.Client, user_webhook_id string, rich_menu_id string) {
+	bot.LinkUserRichMenu(user_webhook_id, rich_menu_id)
+	if _, err := bot.SetDefaultRichMenu(user_webhook_id).Do(); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -68,6 +68,9 @@ func CampReply(c *gin.Context) {
 				text_trimspace := strings.TrimSpace(message.Text)
 
 				switch {
+				case text_trimspace == "w":
+					fmt.Println("webhook id", event.Source.UserID, event.WebhookEventID)
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(event.Source.UserID)).Do()
 				case text_trimspace == "我要訂位":
 					reply_date_limit(bot, event)
 
