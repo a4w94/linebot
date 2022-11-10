@@ -9,6 +9,7 @@ import (
 )
 
 func Build_RichMenu() {
+	var manager_line_id = "U8d3ff666c698729d2de5d62cf4607964"
 
 	bot, err := linebot.New(
 
@@ -32,6 +33,7 @@ func Build_RichMenu() {
 
 	Richmenu_Id_A := CreatRichMenu_A(bot, aid_B)
 
+	fmt.Println(Richmenu_Id_A)
 	img_path_A := "./internal/richmenu/img/img_A.png"
 
 	Upload_Img(bot, Richmenu_Id_A, img_path_A)
@@ -42,8 +44,8 @@ func Build_RichMenu() {
 
 	Upload_Img(bot, Richmenu_Id_B, img_path_B)
 
+	Set_Manager_RichMenu(bot, manager_line_id, Richmenu_Id_A)
 	Set_Default(bot, Richmenu_Id_B)
-	//Set_Manager_RichMenu(bot, "1234", Richmenu_Id_A)
 
 	//CreateRichMenuAlias(bot, aid_A, Richmenu_Id_A)
 	//CreateRichMenuAlias(bot, aid_B, Richmenu_Id_B)
@@ -57,18 +59,18 @@ func CreatRichMenu_A(bot *linebot.Client, aid string) string {
 		Name:        "richmenu-a",
 		ChatBarText: "選單A",
 		Areas: []linebot.AreaDetail{
-			{
-				Bounds: linebot.RichMenuBounds{X: 0, Y: 0, Width: 1200, Height: 235},
-				Action: linebot.RichMenuAction{
-					Type:            linebot.RichMenuActionTypeRichMenuSwitch,
-					RichMenuAliasID: aid,
-					Data:            "action=richmenu-changed-to-b",
-				},
-				// Action: linebot.RichMenuAction{
-				// 	Type: linebot.RichMenuActionTypeMessage,
-				// 	Text: "切換至B",
-				// },
-			},
+			// {
+			// 	Bounds: linebot.RichMenuBounds{X: 0, Y: 0, Width: 1200, Height: 235},
+			// 	Action: linebot.RichMenuAction{
+			// 		Type:            linebot.RichMenuActionTypeRichMenuSwitch,
+			// 		RichMenuAliasID: aid,
+			// 		Data:            "action=richmenu-changed-to-b",
+			// 	},
+			// 	// Action: linebot.RichMenuAction{
+			// 	// 	Type: linebot.RichMenuActionTypeMessage,
+			// 	// 	Text: "切換至B",
+			// 	// },
+			// },
 
 			{
 				Bounds: linebot.RichMenuBounds{X: 0, Y: 788, Width: 833, Height: 553},
@@ -191,8 +193,8 @@ func Set_Default(bot *linebot.Client, id string) {
 }
 
 func Set_Manager_RichMenu(bot *linebot.Client, user_webhook_id string, rich_menu_id string) {
-	bot.LinkUserRichMenu(user_webhook_id, rich_menu_id)
-	if _, err := bot.SetDefaultRichMenu(user_webhook_id).Do(); err != nil {
+
+	if _, err := bot.LinkUserRichMenu(user_webhook_id, rich_menu_id).Do(); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"linebot/api/v1/line"
 	"linebot/internal/middleware"
+	"linebot/internal/richmenu"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func InitRouter() *gin.Engine {
-	//richmenu.Build_RichMenu()
+	richmenu.Build_RichMenu()
 
 	router := gin.Default()
 	// router.Use(gin.BasicAuth(gin.Accounts{

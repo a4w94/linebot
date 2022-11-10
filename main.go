@@ -15,8 +15,8 @@ import (
 func main() {
 	//model.InitDbContext()
 	//db.InitDbContext()
-
-	TestData()
+	// richmenu.Build_RichMenu()
+	//TestData()
 	//GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
