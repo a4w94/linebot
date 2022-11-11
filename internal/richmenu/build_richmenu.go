@@ -59,41 +59,67 @@ func CreatRichMenu_A(bot *linebot.Client, aid string) string {
 		Name:        "richmenu-a",
 		ChatBarText: "選單A",
 		Areas: []linebot.AreaDetail{
-			// {
-			// 	Bounds: linebot.RichMenuBounds{X: 0, Y: 0, Width: 1200, Height: 235},
-			// 	Action: linebot.RichMenuAction{
-			// 		Type:            linebot.RichMenuActionTypeRichMenuSwitch,
-			// 		RichMenuAliasID: aid,
-			// 		Data:            "action=richmenu-changed-to-b",
-			// 	},
-			// 	// Action: linebot.RichMenuAction{
-			// 	// 	Type: linebot.RichMenuActionTypeMessage,
-			// 	// 	Text: "切換至B",
-			// 	// },
-			// },
+			{
+				Bounds: linebot.RichMenuBounds{X: 0, Y: 0, Width: 1200, Height: 235},
+				Action: linebot.RichMenuAction{
+					Type:            linebot.RichMenuActionTypeRichMenuSwitch,
+					RichMenuAliasID: aid,
+					Data:            "action=richmenu-changed-to-b",
+				},
+				// Action: linebot.RichMenuAction{
+				// 	Type: linebot.RichMenuActionTypeMessage,
+				// 	Text: "切換至B",
+				// },
+			},
 
+			{
+				Bounds: linebot.RichMenuBounds{X: 0, Y: 234, Width: 833, Height: 553},
+				Action: linebot.RichMenuAction{
+					Type: linebot.RichMenuActionTypePostback,
+					Data: "action=manager&type=today_order",
+					Text: "今日訂單",
+				},
+			},
+
+			{
+				Bounds: linebot.RichMenuBounds{X: 833, Y: 235, Width: 833, Height: 553},
+				Action: linebot.RichMenuAction{
+					Type: linebot.RichMenuActionTypePostback,
+					Data: "action=manager&type=search_order",
+					Text: "搜尋日期訂單",
+				},
+			},
+			{
+				Bounds: linebot.RichMenuBounds{X: 1666, Y: 235, Width: 833, Height: 553},
+				Action: linebot.RichMenuAction{
+					Type: linebot.RichMenuActionTypePostback,
+					Data: "action=manager&type=confirm_order",
+					Text: "待確認訂單",
+				},
+			},
 			{
 				Bounds: linebot.RichMenuBounds{X: 0, Y: 788, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
-					Type: linebot.RichMenuActionTypeMessage,
-					Text: "好友專屬優惠",
+					Type: linebot.RichMenuActionTypePostback,
+					Data: "action=manager&type=today_new_order",
+					Text: "今日新增訂單",
 				},
 			},
 
 			{
 				Bounds: linebot.RichMenuBounds{X: 833, Y: 788, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
-					Type: linebot.RichMenuActionTypeMessage,
-					Text: "常見問題",
+					Type: linebot.RichMenuActionTypeURI,
+					URI:  "https://www.google.com.tw/maps/place/%E5%B0%8F%E8%B7%AF%E9%9C%B2%E7%87%9F%E5%8D%80/@24.2402679,120.7943069,17z/data=!3m1!4b1!4m5!3m4!1s0x34691bf3c0f25c6b:0x79e36fadfb5136c8!8m2!3d24.240263!4d120.796501?hl=zh-TW",
 				},
 			},
-			{
-				Bounds: linebot.RichMenuBounds{X: 1666, Y: 788, Width: 833, Height: 553},
-				Action: linebot.RichMenuAction{
-					Type: linebot.RichMenuActionTypeMessage,
-					Text: "推薦我們給朋友",
-				},
-			},
+			// {
+			// 	Bounds: linebot.RichMenuBounds{X: 1666, Y: 788, Width: 833, Height: 553},
+			// 	Action: linebot.RichMenuAction{
+			// 		Type: linebot.RichMenuActionTypeURI,
+			// 		URI:  "tel:0909990685",
+			// 	},
+			// },
 		},
 	}
 
