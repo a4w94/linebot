@@ -142,6 +142,22 @@ func GenerateOrderSN(id int) (SN string) {
 	return SN
 }
 
+func GetAll_Unconfirm_Order() []Order {
+	all, err := GetAllOrder()
+	var unconfirm_order []Order
+	if err != nil {
+		log.Println("get all order failed")
+	}
+
+	for i, o := range all {
+		if o.ConfirmStatus == BankStatus_UnConfirm {
+			unconfirm_order = append(unconfirm_order, all[i])
+		}
+	}
+
+	return unconfirm_order
+}
+
 //訂單data資訊回覆
 func (o Order) Reply_Order_Message() string {
 	p, _ := product.GetById(int64(o.ProductId))

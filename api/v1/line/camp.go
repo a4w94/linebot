@@ -133,7 +133,16 @@ func CampReply(c *gin.Context) {
 				case "cancel_confirm":
 					data.user_Cancel_Order(bot, event)
 				}
+			case "manager":
+				switch data.Type {
 
+				case "confirm_order":
+					reply_Unconfirm_Order(bot, event)
+				case "check_order_bank":
+					data.check_Unconfirm_Order(bot, event)
+				case "check_order_status":
+					data.status_Check_Unconfirm_Order(bot, event)
+				}
 			}
 			//fmt.Println("data", event.Postback.Data)
 

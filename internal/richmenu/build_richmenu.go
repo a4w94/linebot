@@ -9,7 +9,6 @@ import (
 )
 
 func Build_RichMenu() {
-	var manager_line_id = "U8d3ff666c698729d2de5d62cf4607964"
 
 	bot, err := linebot.New(
 
@@ -44,7 +43,7 @@ func Build_RichMenu() {
 
 	Upload_Img(bot, Richmenu_Id_B, img_path_B)
 
-	Set_Manager_RichMenu(bot, manager_line_id, Richmenu_Id_A)
+	//Set_Manager_RichMenu(bot, manager_line_id, Richmenu_Id_A)
 	Set_Default(bot, Richmenu_Id_B)
 
 	//CreateRichMenuAlias(bot, aid_A, Richmenu_Id_A)
@@ -73,7 +72,7 @@ func CreatRichMenu_A(bot *linebot.Client, aid string) string {
 			},
 
 			{
-				Bounds: linebot.RichMenuBounds{X: 0, Y: 234, Width: 833, Height: 553},
+				Bounds: linebot.RichMenuBounds{X: 0, Y: 235, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
 					Type: linebot.RichMenuActionTypePostback,
 					Data: "action=manager&type=today_order",
@@ -138,13 +137,14 @@ func CreatRichMenu_B(bot *linebot.Client, aid string) string {
 		Name:        "richmenu-b",
 		ChatBarText: "選單B",
 		Areas: []linebot.AreaDetail{
-			//{
-			// 	Bounds: linebot.RichMenuBounds{X: 1251, Y: 0, Width: 1200, Height: 235},
-			// 	Action: linebot.RichMenuAction{
-			// 		Type:            linebot.RichMenuActionTypeRichMenuSwitch,
-			// 		RichMenuAliasID: aid,
-			// 		Data:            "action=richmenu-changed-to-a",
-			// 	},
+			{
+				Bounds: linebot.RichMenuBounds{X: 1251, Y: 0, Width: 1200, Height: 235},
+				Action: linebot.RichMenuAction{
+					Type:            linebot.RichMenuActionTypeRichMenuSwitch,
+					RichMenuAliasID: aid,
+					Data:            "action=richmenu-changed-to-a",
+				},
+			},
 			// 	// Action: linebot.RichMenuAction{
 			// 	// 	Type: linebot.RichMenuActionTypeMessage,
 			// 	// 	Text: "切換至A",
@@ -218,9 +218,10 @@ func Set_Default(bot *linebot.Client, id string) {
 	}
 }
 
-func Set_Manager_RichMenu(bot *linebot.Client, user_webhook_id string, rich_menu_id string) {
+func set_Manager_RichMenu(bot *linebot.Client, rich_menu_id string) {
 
-	if _, err := bot.LinkUserRichMenu(user_webhook_id, rich_menu_id).Do(); err != nil {
+	var manager_line_id = "U8d3ff666c698729d2de5d62cf4607964"
+	if _, err := bot.LinkUserRichMenu(manager_line_id, rich_menu_id).Do(); err != nil {
 		log.Fatal(err)
 	}
 }
