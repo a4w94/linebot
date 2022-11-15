@@ -46,8 +46,8 @@ func Build_RichMenu() {
 	//Set_Manager_RichMenu(bot, manager_line_id, Richmenu_Id_A)
 	Set_Default(bot, Richmenu_Id_B)
 
-	//CreateRichMenuAlias(bot, aid_A, Richmenu_Id_A)
-	//CreateRichMenuAlias(bot, aid_B, Richmenu_Id_B)
+	CreateRichMenuAlias(bot, aid_A, Richmenu_Id_A)
+	CreateRichMenuAlias(bot, aid_B, Richmenu_Id_B)
 
 }
 
@@ -151,7 +151,7 @@ func CreatRichMenu_B(bot *linebot.Client, aid string) string {
 			// 	// },
 			// },
 			{
-				Bounds: linebot.RichMenuBounds{X: 0, Y: 234, Width: 833, Height: 553},
+				Bounds: linebot.RichMenuBounds{X: 0, Y: 235, Width: 833, Height: 553},
 				Action: linebot.RichMenuAction{
 					Type: linebot.RichMenuActionTypeMessage,
 					Text: "我要訂位",
