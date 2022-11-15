@@ -11,6 +11,8 @@ import (
 func reply_Unconfirm_Order(bot *linebot.Client, event *linebot.Event) {
 	unconfirm_order := order.GetAll_Unconfirm_Order()
 
+	fmt.Println("unconfirm order", unconfirm_order)
+
 	if len(unconfirm_order) == 0 {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("目前沒有需要確認的訂單！")).Do()
 	} else {

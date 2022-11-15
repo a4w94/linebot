@@ -94,7 +94,10 @@ func CampReply(c *gin.Context) {
 		}
 
 		if event.Type == linebot.EventTypePostback {
+
 			data := Parase_postback(event.Postback.Data)
+			fmt.Println("data", event.Postback.Data)
+			fmt.Println("parase data", data)
 			switch data.Action {
 			case "search":
 
@@ -144,7 +147,6 @@ func CampReply(c *gin.Context) {
 					data.status_Check_Unconfirm_Order(bot, event)
 				}
 			}
-			//fmt.Println("data", event.Postback.Data)
 
 		}
 	}

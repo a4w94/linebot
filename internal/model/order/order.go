@@ -148,6 +148,7 @@ func GetAll_Unconfirm_Order() []Order {
 	if err != nil {
 		log.Println("get all order failed")
 	}
+	fmt.Println("all order", all)
 
 	for i, o := range all {
 		if o.ConfirmStatus == BankStatus_UnConfirm {

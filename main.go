@@ -6,7 +6,6 @@ import (
 	_ "linebot/internal/config/db/migrate"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
-	"linebot/internal/richmenu"
 	"linebot/internal/route"
 	"time"
 
@@ -16,8 +15,8 @@ import (
 func main() {
 	//model.InitDbContext()
 	//db.InitDbContext()
-	richmenu.Build_RichMenu()
-	//TestData()
+	//richmenu.Build_RichMenu()
+	TestData()
 	//GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
