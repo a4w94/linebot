@@ -18,18 +18,19 @@ func reply_Unconfirm_Order(bot *linebot.Client, event *linebot.Event) {
 	} else {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂單匯款",
 			&linebot.CarouselTemplate{
-				Columns:          unconfirm_order_Carousel(unconfirm_order),
+				Columns:          Unconfirm_order_Carousel(unconfirm_order),
 				ImageAspectRatio: "rectangle",
 				ImageSize:        "cover",
 			})).Do()
 	}
 }
 
-func unconfirm_order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) {
+func Unconfirm_order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
 	for _, o := range orders {
 		reply_mes := o.Reply_Order_Message()
 		reply_mes = fmt.Sprintf("%s\n狀態:%s(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+		fmt.Println(reply_mes)
 		tmp := linebot.CarouselColumn{
 
 			ImageBackgroundColor: "#000000",
