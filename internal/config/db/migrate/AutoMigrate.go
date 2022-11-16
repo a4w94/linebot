@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	//DropTable(&order.Order{}, &product.Product{}, &product.Price{}, &account.Account{}, &stock.Stock{})
+	DropTable(&order.Order{}, &product.Product{}, &product.Price{}, &account.Account{}, &stock.Stock{})
 	// // // AutoMigrate(&product.Product{})
 	// // DB.Migrator().CreateConstraint(&order.Order{}, "OrderItem")
 	AutoMigrate(&order.Order{})
