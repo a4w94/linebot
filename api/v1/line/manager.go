@@ -114,7 +114,7 @@ func reply_Today_Order(bot *linebot.Client, event *linebot.Event) {
 	if len(today_orders) == 0 {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("今日沒有訂單！")).Do()
 	} else {
-		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂單匯款",
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("今日訂單",
 			&linebot.CarouselTemplate{
 				Columns:          today_Order_Carousel(today_orders),
 				ImageAspectRatio: "rectangle",
