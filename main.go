@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"linebot/api/v1/line"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
-	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/internal/route"
@@ -111,8 +109,12 @@ func TestData() {
 
 func GetData() {
 
-	unconfirm_order := order.GetAll_Unconfirm_Order()
-	line.Unconfirm_order_Carousel(unconfirm_order)
+	// x, _ := order.GetTodayOrder()
+
+	// for _, r := range x {
+	// 	fmt.Println(r, r.Checkin)
+	// }
+
 	// start, _ := time.Parse("2006-01-02", "2022-11-08")
 	// end, _ := time.Parse("2006-01-02", "2022-11-08")
 	// var t line.Search_Time

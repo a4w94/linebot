@@ -29,6 +29,7 @@ type Order struct {
 	ReportDeadLine time.Time
 	BankLast5Num   string
 	ConfirmStatus  Status
+	Arrive         bool
 }
 
 type Status string
@@ -103,6 +104,13 @@ func UpdateOrder(order Order) error {
 	})
 }
 
+func GetTodayOrder() ([]Order, error) {
+	var today_order []Order
+	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+
+	err := db.DB.Where("checkin = ?", today).Find(&today_order).Error
+	return today_order, err
+}
 func GenerateOrderSN(id int) (SN string) {
 
 	var check_unexist bool

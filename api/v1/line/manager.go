@@ -8,6 +8,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
+//*!待確認訂單
 func reply_Unconfirm_Order(bot *linebot.Client, event *linebot.Event) {
 	unconfirm_order := order.GetAll_Unconfirm_Order()
 
@@ -18,18 +19,18 @@ func reply_Unconfirm_Order(bot *linebot.Client, event *linebot.Event) {
 	} else {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂單匯款",
 			&linebot.CarouselTemplate{
-				Columns:          Unconfirm_order_Carousel(unconfirm_order),
+				Columns:          unconfirm_order_Carousel(unconfirm_order),
 				ImageAspectRatio: "rectangle",
 				ImageSize:        "cover",
 			})).Do()
 	}
 }
 
-func Unconfirm_order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) {
+func unconfirm_order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
 	for _, o := range orders {
 		reply_mes := o.Reply_Order_Message()
-		reply_mes = fmt.Sprintf("%s\n狀態:%s(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+		reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
 		fmt.Println(reply_mes)
 		tmp := linebot.CarouselColumn{
 
@@ -101,4 +102,76 @@ func (p_d ParseData) status_Check_Unconfirm_Order(bot *linebot.Client, event *li
 		}
 
 	}
+}
+
+//*!今日訂單
+func reply_Today_Order(bot *linebot.Client, event *linebot.Event) {
+	today_orders, err := order.GetTodayOrder()
+	if err != nil {
+		log.Println("get today order failed")
+	}
+
+	if len(today_orders) == 0 {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("今日沒有訂單！")).Do()
+	} else {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認訂單匯款",
+			&linebot.CarouselTemplate{
+				Columns:          today_Order_Carousel(today_orders),
+				ImageAspectRatio: "rectangle",
+				ImageSize:        "cover",
+			})).Do()
+	}
+}
+
+func today_Order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) {
+	for _, o := range orders {
+		reply_mes := o.Reply_Order_Message()
+		reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+		fmt.Println(reply_mes)
+
+		if !o.Arrive {
+			tmp := linebot.CarouselColumn{
+
+				ImageBackgroundColor: "#000000",
+
+				Text: reply_mes,
+				Actions: []linebot.TemplateAction{
+					&linebot.PostbackAction{
+						Label: "確認到達",
+						Data:  fmt.Sprintf("action=manager&type=checkin_order&data=%s", o.OrderSN),
+					},
+				},
+			}
+			c_t = append(c_t, &tmp)
+		} else {
+			tmp := linebot.CarouselColumn{
+
+				ImageBackgroundColor: "#000000",
+
+				Text: reply_mes,
+				Actions: []linebot.TemplateAction{
+					&linebot.PostbackAction{
+						Label: "已到達(點此更改狀態)",
+						Data:  fmt.Sprintf("action=manager&type=checkin_order&data=%s", o.OrderSN),
+					},
+				},
+			}
+			c_t = append(c_t, &tmp)
+		}
+
+	}
+
+	return c_t
+}
+
+func (p_d ParseData) update_Order_CheckIn_Status(bot *linebot.Client, event *linebot.Event) {
+	o, _ := order.GetOrderByOrderSN(p_d.Data)
+	o.Arrive = !o.Arrive
+	err := order.UpdateOrder(o)
+	if err != nil {
+		log.Println("update order failed")
+	}
+
+	reply_Today_Order(bot, event)
+
 }

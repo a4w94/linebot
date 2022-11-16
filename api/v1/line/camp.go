@@ -86,7 +86,6 @@ func CampReply(c *gin.Context) {
 				case strings.Contains(text_trimspace, "訂單資訊"):
 					get_User_Place(text_trimspace, bot, event)
 				case strings.Contains(text_trimspace, "*回報資訊*"):
-					fmt.Println(text_trimspace)
 					report_Bank_Last_FiveNumbers(bot, event, text_trimspace)
 
 				}
@@ -145,6 +144,10 @@ func CampReply(c *gin.Context) {
 					data.check_Unconfirm_Order(bot, event)
 				case "check_order_status":
 					data.status_Check_Unconfirm_Order(bot, event)
+				case "today_order":
+					reply_Today_Order(bot, event)
+				case "checkin_order":
+					data.update_Order_CheckIn_Status(bot, event)
 				}
 			}
 
@@ -547,6 +550,7 @@ func (p_d ParseData) reply_Order_Confirm(bot *linebot.Client, event *linebot.Eve
 				Checkout:       search_time.End,
 				ReportDeadLine: deadline,
 				ConfirmStatus:  order.BankStatus_Unreport,
+				Arrive:         false,
 			}
 
 			err = tmp_order.Add()
