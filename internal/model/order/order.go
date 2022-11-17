@@ -29,6 +29,7 @@ type Order struct {
 	ReportDeadLine time.Time
 	BankLast5Num   string
 	ConfirmStatus  Status
+	MoneyTransfer  bool
 	Arrive         bool
 }
 

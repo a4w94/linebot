@@ -17,7 +17,7 @@ func main() {
 	//db.InitDbContext()
 	//richmenu.Build_RichMenu()
 	TestData()
-	GetData()
+	//GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)
@@ -52,7 +52,7 @@ func TestData() {
 
 	t, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 20; i++ {
 		t = t.AddDate(0, 0, 1)
 		var r_n = 5
 

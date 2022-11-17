@@ -591,7 +591,7 @@ func reply_User_All_Orders(bot *linebot.Client, event *linebot.Event) {
 	if len(orders) == 0 {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("您尚未有訂單記錄唷！如有喜歡的營位，請儘速訂位")).Do()
 	} else {
-		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("My Orders",
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("我的訂單",
 			&linebot.CarouselTemplate{
 				Columns:          Carousel_Orders(orders),
 				ImageAspectRatio: "rectangle",
@@ -609,7 +609,8 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 		var remit string
 		var status_mes string
 		var actions []linebot.TemplateAction
-		if o.ConfirmStatus == order.BankStatus_Unreport {
+		switch o.ConfirmStatus {
+		case order.BankStatus_Unreport:
 			status_mes = fmt.Sprintf("狀態:%s (點此回報)", o.ConfirmStatus)
 			actions = []linebot.TemplateAction{
 				&linebot.PostbackAction{
@@ -623,15 +624,20 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 					Data:  fmt.Sprintf("action=order&type=cancel&data=%s", o.OrderSN),
 				},
 			}
-		} else if o.ConfirmStatus == order.Order_Cancel {
+
+		case order.Order_Cancel:
 			status_mes = fmt.Sprintf("狀態:%s", o.ConfirmStatus)
 			actions = []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label: status_mes,
 					Data:  "action=cancel_done",
 				},
+				&linebot.PostbackAction{
+					Label: "退款處理中",
+					Data:  "action=cancel_done",
+				},
 			}
-		} else {
+		case order.BankStatus_UnConfirm:
 			status_mes = fmt.Sprintf("狀態:%s(後五碼:%s) ", o.ConfirmStatus, o.BankLast5Num)
 			actions = []linebot.TemplateAction{
 				&linebot.PostbackAction{
@@ -640,14 +646,34 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 					InputOption: linebot.InputOptionOpenKeyboard,
 					FillInText:  fmt.Sprintf("*回報資訊*\n\n訂單編號:%s\n回報帳號後5碼:", o.OrderSN),
 				},
+				&linebot.PostbackAction{
+					Label: "取消訂單",
+					Data:  fmt.Sprintf("action=order&type=cancel&data=%s", o.OrderSN),
+				},
+			}
+		case order.BankStatus_Confirm:
+			status_mes = fmt.Sprintf("狀態:%s", o.ConfirmStatus)
+			actions = []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label: status_mes,
+					Data:  fmt.Sprintf("action=report&data=%s", o.OrderSN),
+				},
+				&linebot.PostbackAction{
+					Label: "取消訂單",
+					Data:  fmt.Sprintf("action=order&type=cancel&data=%s", o.OrderSN),
+				},
 			}
 		}
+
 		title := fmt.Sprintf("訂單編號:%s\n區域:%s\n日期:%s~%s\n總金額:%d\n", o.OrderSN, camp.CampRoundName, start, end, o.PaymentTotal)
 		reply_mes := fmt.Sprintf("%s訂位者姓名:%s\n電話:%s\n訂位數量:%d\n%s", title, o.UserName, o.PhoneNumber, o.Amount, remit)
 		fmt.Println("reply_mes")
 		fmt.Println(reply_mes)
+		fmt.Println()
 		fmt.Println("status")
 		fmt.Println(status_mes)
+		fmt.Println()
+
 		tmp := linebot.CarouselColumn{
 
 			ImageBackgroundColor: "#000000",
@@ -659,7 +685,7 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 	}
 
 	for i, r := range c_t {
-		fmt.Println(i, r)
+		fmt.Println(i, r.Actions)
 		fmt.Println()
 	}
 	return c_t
@@ -684,7 +710,11 @@ func report_Bank_Last_FiveNumbers(bot *linebot.Client, event *linebot.Event, rep
 	fmt.Println("report map ", report_map)
 	sn := report_map["訂單編號"]
 	numbers := report_map["回報帳號後5碼"]
-	o, _ := order.GetOrderByOrderSN(sn)
+	o, err := order.GetOrderByOrderSN(sn)
+
+	if err != nil {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("訂單編號有誤，請重新回報")).Do()
+	}
 	if len(strings.TrimSpace(numbers)) != 5 {
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("回報帳號有誤，請重新回報")).Do()
 
