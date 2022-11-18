@@ -331,18 +331,18 @@ func reply_date_limit(bot *linebot.Client, event *linebot.Event) {
 			date := value.End.Format("2006-01-02")
 			start_time = "起始日期 "
 			end_time = fmt.Sprintf("結束日期 %s", date)
-			start_Max = date
+			start_Max = value.End.AddDate(0, 0, -1).Format("2006-01-02")
 		case !value.Start.IsZero() && !value.End.IsZero():
 			date_start := value.Start.Format("2006-01-02")
 			date_end := value.End.Format("2006-01-02")
 			end := value.Start.AddDate(0, 0, 1).Format("2006-01-02")
-
+			startmax := value.End.AddDate(0, 0, -1).Format("2006-01-02")
 			start_time = fmt.Sprintf("起始日期 %s", date_start)
 			end_time = fmt.Sprintf("結束日期 %s", date_end)
-
+			start_init = date_start
+			start_Max = startmax
 			end_init = end
 			end_min = end
-			end_Max = end
 
 		}
 	}
@@ -794,20 +794,35 @@ func (p_d ParseData) user_Cancel_Order(bot *linebot.Client, event *linebot.Event
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
 		} else {
-			for i := range stocks {
-				stocks[i].RemainNum += num
-				err := stocks[i].UpdateStock()
+			if o.ConfirmStatus == order.Order_Refund {
+				//訂單已匯款 等待營主確認退款
+				o.ConfirmStatus = order.Order_Refund
+				err := order.UpdateOrder(o)
 				if err != nil {
-					log.Println("刪除訂單 回復商品數量失敗")
+					log.Println("訂單更新狀態失敗")
+				} else {
+					reply_mes = "取消訂單請求已送出，等待營主進行退款確認"
 				}
-			}
 
-			err = o.Delete()
-			if err != nil {
-				log.Println("delete order failed", err)
-			} else {
-				reply_mes = "取消訂單成功"
+			} else if o.ConfirmStatus == order.BankStatus_Unreport {
 
+				//訂單尚位匯款 直接取消訂單
+
+				for i := range stocks {
+					stocks[i].RemainNum += num
+					err := stocks[i].UpdateStock()
+					if err != nil {
+						log.Println("刪除訂單 回復商品數量失敗")
+					}
+				}
+
+				err = o.Delete()
+				if err != nil {
+					log.Println("delete order failed", err)
+				} else {
+					reply_mes = "取消訂單成功"
+
+				}
 			}
 		}
 	}

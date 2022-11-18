@@ -158,7 +158,7 @@ func (p_d ParseData) check_Refund_Order(bot *linebot.Client, event *linebot.Even
 	}
 }
 
-//確認匯款更改狀態
+//確認退款更改狀態
 func (p_d ParseData) status_Check_Refund_Order(bot *linebot.Client, event *linebot.Event) {
 
 	switch p_d.Status {
@@ -178,7 +178,6 @@ func (p_d ParseData) status_Check_Refund_Order(bot *linebot.Client, event *lineb
 			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("訂單更新狀態失敗")).Do()
 		} else {
 			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("訂單退款成功")).Do()
-
 		}
 
 	}
