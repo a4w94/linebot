@@ -36,10 +36,12 @@ type Order struct {
 type Status string
 
 var (
-	BankStatus_Unreport  Status = "尚未回報後五碼"
-	BankStatus_UnConfirm Status = "營主確認中"
-	BankStatus_Confirm   Status = "營主已確認"
-	Order_Cancel         Status = "訂單已取消"
+	BankStatus_Unreport      Status = "尚未回報後五碼"
+	BankStatus_UnConfirm     Status = "營主確認中"
+	BankStatus_Confirm       Status = "營主已確認"
+	Order_Cancel             Status = "訂單已取消"
+	Order_Refund             Status = "訂單退款處理中"
+	Order_Refund_Cancel_Done Status = "訂單已取消 退款成功"
 )
 
 func (order *Order) Add() error {
@@ -158,7 +160,11 @@ func GetAll_Unconfirm_Order() []Order {
 		log.Println("get all order failed")
 	}
 	fmt.Println("all order", all)
-
+	for i, o := range all {
+		if o.ConfirmStatus == Order_Refund {
+			unconfirm_order = append(unconfirm_order, all[i])
+		}
+	}
 	for i, o := range all {
 		if o.ConfirmStatus == BankStatus_UnConfirm {
 			unconfirm_order = append(unconfirm_order, all[i])

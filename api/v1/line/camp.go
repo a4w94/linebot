@@ -144,6 +144,10 @@ func CampReply(c *gin.Context) {
 					data.check_Unconfirm_Order(bot, event)
 				case "check_order_status":
 					data.status_Check_Unconfirm_Order(bot, event)
+				case "check_order_refund":
+					data.check_Refund_Order(bot, event)
+				case "check_refund_status":
+					data.status_Check_Refund_Order(bot, event)
 				case "today_order":
 					reply_Today_Order(bot, event)
 				case "checkin_order":
@@ -625,18 +629,6 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 				},
 			}
 
-		case order.Order_Cancel:
-			status_mes = fmt.Sprintf("狀態:%s", o.ConfirmStatus)
-			actions = []linebot.TemplateAction{
-				&linebot.PostbackAction{
-					Label: status_mes,
-					Data:  "action=cancel_done",
-				},
-				&linebot.PostbackAction{
-					Label: "退款處理中",
-					Data:  "action=cancel_done",
-				},
-			}
 		case order.BankStatus_UnConfirm:
 			status_mes = fmt.Sprintf("狀態:%s(後五碼:%s) ", o.ConfirmStatus, o.BankLast5Num)
 			actions = []linebot.TemplateAction{
@@ -647,8 +639,8 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 					FillInText:  fmt.Sprintf("*回報資訊*\n\n訂單編號:%s\n回報帳號後5碼:", o.OrderSN),
 				},
 				&linebot.PostbackAction{
-					Label: "取消訂單",
-					Data:  fmt.Sprintf("action=order&type=cancel&data=%s", o.OrderSN),
+					Label: "須待營主確認訂單後才可取消訂單",
+					Data:  "action=order&type=uncancel",
 				},
 			}
 		case order.BankStatus_Confirm:
@@ -656,11 +648,48 @@ func Carousel_Orders(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 			actions = []linebot.TemplateAction{
 				&linebot.PostbackAction{
 					Label: status_mes,
-					Data:  fmt.Sprintf("action=report&data=%s", o.OrderSN),
+					Data:  fmt.Sprintf("action=report_done&data=%s", o.OrderSN),
 				},
 				&linebot.PostbackAction{
 					Label: "取消訂單",
 					Data:  fmt.Sprintf("action=order&type=cancel&data=%s", o.OrderSN),
+				},
+			}
+		case order.Order_Refund:
+			status_mes = fmt.Sprintf("狀態:%s", o.ConfirmStatus)
+			actions = []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label: status_mes,
+					Data:  "action=report_done",
+				},
+				&linebot.MessageAction{
+					Label: "重新訂位",
+					Text:  "我要訂位",
+				},
+			}
+		case order.Order_Refund_Cancel_Done:
+			status_mes = fmt.Sprintf("狀態:%s", o.ConfirmStatus)
+			actions = []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label: status_mes,
+					Data:  "action=cancel_done",
+				},
+				&linebot.MessageAction{
+					Label: "重新訂位",
+					Text:  "我要訂位",
+				},
+			}
+
+		case order.Order_Cancel:
+			status_mes = fmt.Sprintf("狀態:%s", o.ConfirmStatus)
+			actions = []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label: status_mes,
+					Data:  "action=cancel_done",
+				},
+				&linebot.MessageAction{
+					Label: "重新訂位",
+					Text:  "我要訂位",
 				},
 			}
 		}

@@ -29,29 +29,54 @@ func reply_Unconfirm_Order(bot *linebot.Client, event *linebot.Event) {
 func unconfirm_order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 
 	for _, o := range orders {
-		reply_mes := o.Reply_Order_Message()
-		reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
-		fmt.Println(reply_mes)
-		tmp := linebot.CarouselColumn{
+		switch o.ConfirmStatus {
+		case order.BankStatus_UnConfirm:
+			reply_mes := o.Reply_Order_Message()
+			reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+			fmt.Println(reply_mes)
+			tmp := linebot.CarouselColumn{
 
-			ImageBackgroundColor: "#000000",
+				ImageBackgroundColor: "#000000",
 
-			Text: reply_mes,
-			Actions: []linebot.TemplateAction{
-				&linebot.PostbackAction{
-					Label: "確認",
-					Data:  fmt.Sprintf("action=manager&type=check_order_bank&data=%s", o.OrderSN),
+				Text: reply_mes,
+				Actions: []linebot.TemplateAction{
+					&linebot.PostbackAction{
+						Label: "匯款確認",
+						Data:  fmt.Sprintf("action=manager&type=check_order_bank&data=%s", o.OrderSN),
+					},
 				},
-			},
+			}
+
+			c_t = append(c_t, &tmp)
+
+		case order.Order_Refund:
+			reply_mes := o.Reply_Order_Message()
+			reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+			fmt.Println(reply_mes)
+			tmp := linebot.CarouselColumn{
+
+				ImageBackgroundColor: "#000000",
+
+				Text: reply_mes,
+				Actions: []linebot.TemplateAction{
+					&linebot.PostbackAction{
+						Label: "訂單取消 退款確認",
+						Data:  fmt.Sprintf("action=manager&type=check_order_refund&data=%s", o.OrderSN),
+					},
+				},
+			}
+
+			c_t = append(c_t, &tmp)
+
 		}
 
-		c_t = append(c_t, &tmp)
 	}
 
 	return c_t
 
 }
 
+//訂單確認是否匯款
 func (p_d ParseData) check_Unconfirm_Order(bot *linebot.Client, event *linebot.Event) {
 	o, err := order.GetOrderByOrderSN(p_d.Data)
 	if err != nil {
@@ -79,6 +104,7 @@ func (p_d ParseData) check_Unconfirm_Order(bot *linebot.Client, event *linebot.E
 	}
 }
 
+//確認匯款更改狀態
 func (p_d ParseData) status_Check_Unconfirm_Order(bot *linebot.Client, event *linebot.Event) {
 
 	switch p_d.Status {
@@ -98,6 +124,60 @@ func (p_d ParseData) status_Check_Unconfirm_Order(bot *linebot.Client, event *li
 			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("訂單更新狀態失敗")).Do()
 		} else {
 			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("訂單確認成功")).Do()
+
+		}
+
+	}
+}
+
+//訂單確認是否退款
+func (p_d ParseData) check_Refund_Order(bot *linebot.Client, event *linebot.Event) {
+	o, err := order.GetOrderByOrderSN(p_d.Data)
+	if err != nil {
+		log.Println("get order by SN failed")
+	}
+
+	if o.ConfirmStatus == order.BankStatus_UnConfirm {
+		reply_mes := o.Reply_Order_Message()
+		reply_mes = fmt.Sprintf("%s\n狀態:%s(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認該筆訂單退款", &linebot.ConfirmTemplate{
+			Text: reply_mes,
+			Actions: []linebot.TemplateAction{
+				&linebot.PostbackAction{
+					Label: "是",
+					Data:  fmt.Sprintf("action=manager&type=check_refund_status&data=%s&status=yes", o.OrderSN),
+				},
+				&linebot.PostbackAction{
+					Label: "否",
+					Data:  "action=manager&type=check_refund_status&status=no",
+				},
+			},
+		})).Do()
+	} else if o.ConfirmStatus == order.Order_Refund_Cancel_Done {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("此筆訂單已確認退款")).Do()
+	}
+}
+
+//確認匯款更改狀態
+func (p_d ParseData) status_Check_Refund_Order(bot *linebot.Client, event *linebot.Event) {
+
+	switch p_d.Status {
+
+	case "no":
+		reply_Unconfirm_Order(bot, event)
+	case "yes":
+		o, err := order.GetOrderByOrderSN(p_d.Data)
+		if err != nil {
+			log.Println("get order by SN failed")
+		}
+		o.ConfirmStatus = order.Order_Refund_Cancel_Done
+		err = order.UpdateOrder(o)
+		if err != nil {
+
+			log.Println("update order failed")
+			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("訂單更新狀態失敗")).Do()
+		} else {
+			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("訂單退款成功")).Do()
 
 		}
 
