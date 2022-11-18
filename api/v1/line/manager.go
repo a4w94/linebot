@@ -137,7 +137,7 @@ func (p_d ParseData) check_Refund_Order(bot *linebot.Client, event *linebot.Even
 		log.Println("get order by SN failed")
 	}
 
-	if o.ConfirmStatus == order.BankStatus_UnConfirm {
+	if o.ConfirmStatus == order.Order_Refund {
 		reply_mes := o.Reply_Order_Message()
 		reply_mes = fmt.Sprintf("%s\n狀態:%s(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
 		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("確認該筆訂單退款", &linebot.ConfirmTemplate{
