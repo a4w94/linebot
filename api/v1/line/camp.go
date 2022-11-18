@@ -794,7 +794,7 @@ func (p_d ParseData) user_Cancel_Order(bot *linebot.Client, event *linebot.Event
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
 		} else {
-			if o.ConfirmStatus == order.Order_Refund {
+			if o.ConfirmStatus == order.BankStatus_Confirm {
 				//訂單已匯款 等待營主確認退款
 				o.ConfirmStatus = order.Order_Refund
 				err := order.UpdateOrder(o)
