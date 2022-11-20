@@ -801,6 +801,13 @@ func (p_d ParseData) user_Cancel_Order(bot *linebot.Client, event *linebot.Event
 				if err != nil {
 					log.Println("訂單更新狀態失敗")
 				} else {
+					for i := range stocks {
+						stocks[i].RemainNum += num
+						err := stocks[i].UpdateStock()
+						if err != nil {
+							log.Println("刪除訂單 回復商品數量失敗")
+						}
+					}
 					reply_mes = "取消訂單請求已送出，等待營主進行退款確認"
 				}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"linebot/internal/config"
 	_ "linebot/internal/config/db/migrate"
+	"linebot/internal/model/order"
 	"linebot/internal/model/product"
 	"linebot/internal/model/stock"
 	"linebot/internal/route"
@@ -17,7 +18,7 @@ func main() {
 	//db.InitDbContext()
 	//richmenu.Build_RichMenu()
 	//TestData()
-	//GetData()
+	GetData()
 	ginroute := route.InitRouter()
 	fmt.Printf("Address: http://localhost:%s/ \n", config.HttpPort)
 	ginroute.Run(":" + config.HttpPort)
@@ -109,11 +110,11 @@ func TestData() {
 
 func GetData() {
 
-	// x, _ := order.GetTodayOrder()
+	x, _ := order.GetTodayNewOrder()
 
-	// for _, r := range x {
-	// 	fmt.Println(r, r.Checkin)
-	// }
+	for _, r := range x {
+		fmt.Println(r, r.CreatedAt)
+	}
 
 	// start, _ := time.Parse("2006-01-02", "2022-11-08")
 	// end, _ := time.Parse("2006-01-02", "2022-11-08")

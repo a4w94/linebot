@@ -205,37 +205,44 @@ func reply_Today_Order(bot *linebot.Client, event *linebot.Event) {
 func today_Order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) {
 	for _, o := range orders {
 		reply_mes := o.Reply_Order_Message()
-		reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+		if o.ConfirmStatus == order.BankStatus_UnConfirm {
+			reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+		}
+		if o.ConfirmStatus == order.BankStatus_Confirm {
+			reply_mes = fmt.Sprintf("%s\n狀態:%s ", reply_mes, o.ConfirmStatus)
+		}
 		fmt.Println(reply_mes)
 
-		if !o.Arrive {
-			tmp := linebot.CarouselColumn{
+		if o.ConfirmStatus == order.BankStatus_Confirm || o.ConfirmStatus == order.BankStatus_UnConfirm {
+			if !o.Arrive {
+				tmp := linebot.CarouselColumn{
 
-				ImageBackgroundColor: "#000000",
+					ImageBackgroundColor: "#000000",
 
-				Text: reply_mes,
-				Actions: []linebot.TemplateAction{
-					&linebot.PostbackAction{
-						Label: "確認到達",
-						Data:  fmt.Sprintf("action=manager&type=checkin_order&data=%s", o.OrderSN),
+					Text: reply_mes,
+					Actions: []linebot.TemplateAction{
+						&linebot.PostbackAction{
+							Label: "確認到達",
+							Data:  fmt.Sprintf("action=manager&type=checkin_order&data=%s", o.OrderSN),
+						},
 					},
-				},
-			}
-			c_t = append(c_t, &tmp)
-		} else {
-			tmp := linebot.CarouselColumn{
+				}
+				c_t = append(c_t, &tmp)
+			} else {
+				tmp := linebot.CarouselColumn{
 
-				ImageBackgroundColor: "#000000",
+					ImageBackgroundColor: "#000000",
 
-				Text: reply_mes,
-				Actions: []linebot.TemplateAction{
-					&linebot.PostbackAction{
-						Label: "已到達(點此更改狀態)",
-						Data:  fmt.Sprintf("action=manager&type=checkin_order&data=%s", o.OrderSN),
+					Text: reply_mes,
+					Actions: []linebot.TemplateAction{
+						&linebot.PostbackAction{
+							Label: "已到達(點此更改狀態)",
+							Data:  fmt.Sprintf("action=manager&type=checkin_order&data=%s", o.OrderSN),
+						},
 					},
-				},
+				}
+				c_t = append(c_t, &tmp)
 			}
-			c_t = append(c_t, &tmp)
 		}
 
 	}
@@ -252,5 +259,91 @@ func (p_d ParseData) update_Order_CheckIn_Status(bot *linebot.Client, event *lin
 	}
 
 	reply_Today_Order(bot, event)
+
+}
+
+//*!今日新增訂單
+
+func reply_TodayNew_Order(bot *linebot.Client, event *linebot.Event) {
+	today_new_orders, err := order.GetTodayNewOrder()
+	if err != nil {
+		log.Println("get today order failed")
+	}
+
+	if len(today_new_orders) == 0 {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("今日沒有訂單！")).Do()
+	} else {
+		bot.ReplyMessage(event.ReplyToken, linebot.NewTemplateMessage("今日訂單",
+			&linebot.CarouselTemplate{
+				Columns:          today_New_Order_Carousel(today_new_orders),
+				ImageAspectRatio: "rectangle",
+				ImageSize:        "cover",
+			})).Do()
+	}
+}
+
+func today_New_Order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) {
+
+	for _, o := range orders {
+		reply_mes := o.Reply_Order_Message()
+
+		switch o.ConfirmStatus {
+		case order.BankStatus_Unreport:
+			reply_mes = fmt.Sprintf("%s\n狀態:%s ", reply_mes, o.ConfirmStatus)
+			fmt.Println(reply_mes)
+			tmp := linebot.CarouselColumn{
+
+				ImageBackgroundColor: "#000000",
+
+				Text: reply_mes,
+				Actions: []linebot.TemplateAction{
+					&linebot.PostbackAction{
+						Label: "尚未匯款",
+						Data:  fmt.Sprintf("action=manager&type=order_unreport&data=%s", o.OrderSN),
+					},
+				},
+			}
+
+			c_t = append(c_t, &tmp)
+		case order.BankStatus_UnConfirm:
+			reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+			fmt.Println(reply_mes)
+			tmp := linebot.CarouselColumn{
+
+				ImageBackgroundColor: "#000000",
+
+				Text: reply_mes,
+				Actions: []linebot.TemplateAction{
+					&linebot.PostbackAction{
+						Label: "匯款確認",
+						Data:  fmt.Sprintf("action=manager&type=check_order_bank&data=%s", o.OrderSN),
+					},
+				},
+			}
+
+			c_t = append(c_t, &tmp)
+		case order.BankStatus_Confirm:
+			reply_mes = fmt.Sprintf("%s\n狀態:%s ", reply_mes, o.ConfirmStatus)
+			fmt.Println(reply_mes)
+			tmp := linebot.CarouselColumn{
+
+				ImageBackgroundColor: "#000000",
+
+				Text: reply_mes,
+				Actions: []linebot.TemplateAction{
+					&linebot.PostbackAction{
+						Label: "匯款確認完成",
+						Data:  fmt.Sprintf("action=manager&type=order_report_done&data=%s", o.OrderSN),
+					},
+				},
+			}
+
+			c_t = append(c_t, &tmp)
+
+		}
+
+	}
+
+	return c_t
 
 }

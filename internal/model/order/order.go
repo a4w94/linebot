@@ -107,6 +107,7 @@ func UpdateOrder(order Order) error {
 	})
 }
 
+//獲得今日訂單
 func GetTodayOrder() ([]Order, error) {
 	var today_order []Order
 	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
@@ -114,6 +115,17 @@ func GetTodayOrder() ([]Order, error) {
 	err := db.DB.Where("checkin = ?", today).Find(&today_order).Error
 	return today_order, err
 }
+
+//獲得今日新增訂單
+func GetTodayNewOrder() ([]Order, error) {
+	var today_new_order []Order
+	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+	today_last := today.Add(time.Hour*23 + time.Minute*59 + time.Second*59)
+
+	err := db.DB.Where("created_at BETWEEN ? AND ?", today, today_last).Find(&today_new_order).Error
+	return today_new_order, err
+}
+
 func GenerateOrderSN(id int) (SN string) {
 
 	var check_unexist bool
