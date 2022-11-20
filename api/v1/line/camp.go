@@ -152,6 +152,8 @@ func CampReply(c *gin.Context) {
 					reply_Today_Order(bot, event)
 				case "checkin_order":
 					data.update_Order_CheckIn_Status(bot, event)
+				case "today_new_order":
+					reply_TodayNew_Order(bot, event)
 				}
 			}
 

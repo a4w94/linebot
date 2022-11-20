@@ -206,7 +206,7 @@ func today_Order_Carousel(orders []order.Order) (c_t []*linebot.CarouselColumn) 
 	for _, o := range orders {
 		reply_mes := o.Reply_Order_Message()
 		if o.ConfirmStatus == order.BankStatus_UnConfirm {
-			reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, o.ConfirmStatus, o.BankLast5Num)
+			reply_mes = fmt.Sprintf("%s\n狀態:%s\n(後五碼:%s) ", reply_mes, "匯款確認中", o.BankLast5Num)
 		}
 		if o.ConfirmStatus == order.BankStatus_Confirm {
 			reply_mes = fmt.Sprintf("%s\n狀態:%s ", reply_mes, o.ConfirmStatus)
